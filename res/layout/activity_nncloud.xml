@@ -1,0 +1,123 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:id="@+id/ServiceButton"
+        android:layout_width="wrap_content"
+        android:layout_height="70dip"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" >
+
+        <Button
+            android:id="@+id/start"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="START" />
+
+        <Button
+            android:id="@+id/stop"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="STOP" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/StateButton2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ServiceButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:padding="10dip" >
+
+        <ImageView
+            android:id="@+id/stir_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="60dip"
+            android:layout_marginRight="10dip"
+            android:layout_weight="1"
+            android:src="@drawable/stair" />
+
+        <ImageView
+            android:id="@+id/elev_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="10dip"
+            android:layout_marginRight="60dip"
+            android:layout_weight="1"
+            android:src="@drawable/ele" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/StateButton1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/StateButton2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:padding="10dip" >
+
+        <ImageView
+            android:id="@+id/stop_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="10dip"
+            android:layout_marginRight="10dip"
+            android:layout_weight="1"
+            android:src="@drawable/stop" />
+
+        <ImageView
+            android:id="@+id/walk_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="20dip"
+            android:layout_marginRight="10dip"
+            android:layout_weight="1"
+            android:src="@drawable/walk" />
+
+        <ImageView
+            android:id="@+id/train_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_weight="1"
+            android:src="@drawable/train" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/StateButton1"
+        android:layout_alignParentLeft="true"
+        android:text="Server State:"
+        android:textSize="48px" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView1"
+        android:layout_alignBottom="@+id/textView1"
+        android:layout_toRightOf="@+id/textView1"
+        android:text="OFFLINE"
+        android:textSize="48px" />
+
+    <FrameLayout
+        android:id="@+id/LogSurface"
+        android:layout_width="fill_parent"
+        android:layout_height="120dip"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" >
+
+    </FrameLayout>
+
+</RelativeLayout>
