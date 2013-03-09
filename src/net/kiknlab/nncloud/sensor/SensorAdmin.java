@@ -1,6 +1,5 @@
 package net.kiknlab.nncloud.sensor;
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 import net.kiknlab.nncloud.db.LearningDBManager;

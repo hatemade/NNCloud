@@ -1,11 +1,8 @@
 package net.kiknlab.nncloud.cloud;
 
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import net.kiknlab.nncloud.db.LearningDBManager;
 
@@ -21,7 +18,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 public class SendSensorServerTask extends AsyncTask<Void, Void, Boolean>{
 	private Context mContext;

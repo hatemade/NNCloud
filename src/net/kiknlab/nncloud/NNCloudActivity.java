@@ -1,16 +1,11 @@
 package net.kiknlab.nncloud;
 
-import net.kiknlab.nncloud.cloud.JoinServerTask;
-import net.kiknlab.nncloud.cloud.LoginServerTask;
-import net.kiknlab.nncloud.cloud.SendSensorServerTask;
 import net.kiknlab.nncloud.db.LearningDBManager;
 import net.kiknlab.nncloud.draw.NakedView;
 import net.kiknlab.nncloud.service.ServiceManagerForActivity;
 
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;

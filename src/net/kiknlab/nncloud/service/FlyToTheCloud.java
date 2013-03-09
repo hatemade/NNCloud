@@ -4,17 +4,15 @@ import net.kiknlab.nncloud.sensor.SensorAdmin;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class FlyToTheCloud extends Service implements Runnable{
 	private final IBinder mBinder = new FTTCBinder();
 	private Thread mThread;
 	private SensorAdmin mSensor;
-	private SharedPreferences sp;
+	//private SharedPreferences sp;
 	int i = 0;
 
 	@Override
@@ -26,6 +24,7 @@ public class FlyToTheCloud extends Service implements Runnable{
 		mSensor.resume();
 		
 		mThread = new Thread(this);
+		mThread.start();
 	}
 
 	@Override
