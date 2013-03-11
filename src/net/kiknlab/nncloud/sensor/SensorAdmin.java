@@ -12,7 +12,7 @@ import android.hardware.SensorManager;
 import android.util.Log;
 
 public class SensorAdmin implements SensorEventListener{
-	private final int TYPE_ORIENTATION_MAKE = 3;
+	public final static int TYPE_ORIENTATION_MAKE = 3;//orientationがdeprecatedなので自分で定義
 	private SensorManager sensorManager;//センサーマネージャ
 	private Sensor        accelerometer;//加速度センサー
 	//private Sensor        orientation;//回転センサー。諸君らの愛した回転センサーは死んだ、なぜだ！？坊やだからさ
@@ -42,7 +42,7 @@ public class SensorAdmin implements SensorEventListener{
 	private Context mContext;
 	private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！
 	public int getTimes;
-	public static final int TransactionPeriod = 2000;
+	public static final int TransactionPeriod = 800;
 
 	public SensorAdmin(Object sensorService, Context context) {
 		mContext = context;
@@ -74,7 +74,7 @@ public class SensorAdmin implements SensorEventListener{
 		
 		//DB初期化して開始！
 		mDb = new LearningDBManager();
-		mDb.beginTransaction(context);
+		mDb.startTransaction(context);
 		getTimes = 0;
 	}
 
@@ -121,6 +121,7 @@ public class SensorAdmin implements SensorEventListener{
 			IsMagnetic = true;
 			break;
 		case Sensor.TYPE_PROXIMITY:
+			Log.e("DebugShiro",event.timestamp+"\n"+java.lang.System.currentTimeMillis());//時間がeventから取得できるか後で確認、できたらそっちを使う
 			mDb.insertTransaction(mContext, event.values[0], event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis());
 			getTimes++;
 			break;
@@ -146,7 +147,7 @@ public class SensorAdmin implements SensorEventListener{
 		if(getTimes >= TransactionPeriod){
 			mDb.endTransaction();
 			getTimes = 0;
-			mDb.beginTransaction(mContext);
+			mDb.beginTransaction();
 		}
 	}
 

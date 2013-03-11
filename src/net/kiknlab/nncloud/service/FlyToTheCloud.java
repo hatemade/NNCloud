@@ -1,6 +1,7 @@
 package net.kiknlab.nncloud.service;
 
 import net.kiknlab.nncloud.sensor.SensorAdmin;
+import net.kiknlab.nncloud.sensor.StateInference;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ public class FlyToTheCloud extends Service implements Runnable{
 	private final IBinder mBinder = new FTTCBinder();
 	private Thread mThread;
 	private SensorAdmin mSensor;
+	private StateInference mState;
 	//private SharedPreferences sp;
 	int i = 0;
 
@@ -22,6 +24,8 @@ public class FlyToTheCloud extends Service implements Runnable{
 
 		mSensor = new SensorAdmin(getSystemService(Context.SENSOR_SERVICE), getApplication());
 		mSensor.resume();
+		
+		mState = new StateInference(getApplication());
 		
 		mThread = new Thread(this);
 		mThread.start();
@@ -39,7 +43,7 @@ public class FlyToTheCloud extends Service implements Runnable{
 				"Y" + Math.floor(Math.toDegrees(mSensor.orientationValues[0])) +
 				":X" + Math.floor(Math.toDegrees(mSensor.orientationValues[2])) +
 				":Z" + Math.floor(Math.toDegrees(mSensor.orientationValues[1])) +
-				":arc" + Math.toDegrees(Math.atan2(mSensor.accelerometerValues[1], mSensor.accelerometerValues[2])) +
+				":èÛë‘" + mState.state + "ï‡êî" + mState.walkCount +
 				":âÒêî" + mSensor.getTimes;
 	}
 
@@ -63,6 +67,7 @@ public class FlyToTheCloud extends Service implements Runnable{
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		mState.stop();
 		mSensor.stop();
 		Log.e("Sevice Run", "onDestroy");
 	}
