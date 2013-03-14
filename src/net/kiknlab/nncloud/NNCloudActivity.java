@@ -1,6 +1,7 @@
 package net.kiknlab.nncloud;
 
 import net.kiknlab.nncloud.db.LearningDBManager;
+import net.kiknlab.nncloud.db.LogToData;
 import net.kiknlab.nncloud.draw.NakedView;
 import net.kiknlab.nncloud.service.ServiceManagerForActivity;
 
@@ -29,9 +30,11 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		Button startBtn = (Button) findViewById(R.id.start);
 		Button stopBtn = (Button) findViewById(R.id.stop);
 		ImageView elevBtn = (ImageView)findViewById(R.id.elev_button);
+		ImageView walkBtn = (ImageView)findViewById(R.id.walk_button);
 		startBtn.setId(0);startBtn.setOnClickListener(this);
 		stopBtn.setId(1);stopBtn.setOnClickListener(this);
 		elevBtn.setId(2);elevBtn.setOnClickListener(this);
+		walkBtn.setId(3);walkBtn.setOnClickListener(this);
 		
 		//SurfaceView
 		FrameLayout nakedLog = (FrameLayout)findViewById(R.id.LogSurface);
@@ -91,7 +94,12 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 			//new LoginServerTask(this).execute();
 			//Log.e("SESSION",sp.getString("PREF_SESSION", "test"));
 			//new SendSensorServerTask(this).execute();
-			LearningDBManager.getSensorData(getApplicationContext(),1);
+			//LearningDBManager.getSensorData(getApplicationContext(),1);
+			LearningDBManager.countDats(this);
+			break;
+		case 3:
+			Log.e("File kakikomi","1");
+			new LogToData(this).execute();
 			break;
 		}
 	}

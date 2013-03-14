@@ -85,7 +85,6 @@ public class StateInference {//状態推定
 		//推定に必要な変数
 		long judgeTime = sp.getLong(TIME_LENGTH, TIME_LENGTH_DEFAULT);//判定時間を決めます
 		//センサの値
-		Log.e("今ここ","2");
 		ArrayList<SensorData> acceles = LearningDBManager.getSensorData(
 				mContext, Sensor.TYPE_ACCELEROMETER, java.lang.System.currentTimeMillis() - judgeTime);
 		ArrayList<SensorData> orientations = LearningDBManager.getSensorData(
@@ -93,13 +92,9 @@ public class StateInference {//状態推定
 		Log.e("今ここ", "数:" + acceles.size() + ":" + orientations.size());
 		if(acceles.size() <= sp.getInt(ELEVATOR_DIFFERENT_INTERVAL, ELEVATOR_DIFFERENT_INTERVAL_DEFAULT) || orientations.size() <= 0)	return;//値がなければ計算できませんよ
 		//平均とか分散とか垂直加速度とか歩数とか、多分この四つで全部？二つで済んだ
-		Log.e("今ここ","4");
 		ArrayList<Float> verticalAcceles = calcVerticalAcceleration(acceles, orientations);
-		Log.e("今ここ","5");
 		int walkCount = countWalk(verticalAcceles);
-		Log.e("今ここ","6");
 		this.walkCount = walkCount;
-		Log.e("今ここ","7");
 
 		//判定するよー！
 		// 歩行かそうでないかを判定した後、歩行の場合階段かどうか、歩行でないばあいエレベータの判定を行う

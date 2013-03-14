@@ -1,5 +1,6 @@
 package net.kiknlab.nncloud.db;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 import net.kiknlab.nncloud.util.SensorData;
@@ -8,6 +9,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 import android.util.Log;
 
 public class LearningDBManager {
@@ -138,16 +140,16 @@ public class LearningDBManager {
 		Cursor cursor = db.query(//指定された時間から最新のデータを集める
 				LearningDBHelper.TABLE_NAME,
 				null,
-				"? = " + LearningDBHelper.COL_TYPE + " and ? >= " + LearningDBHelper.COL_TIMESTAMP,
+				"? = " + LearningDBHelper.COL_TYPE + " and ? <= " + LearningDBHelper.COL_TIMESTAMP,
 				new String[]{type + "", time + ""},
 				null, null,
 				LearningDBHelper.COL_ID + " DESC",
 				null);
-		
+
 		ArrayList<SensorData> datas = new ArrayList<SensorData>();
 		try {
 			while (cursor.moveToNext()) {
-				Log.e("今ここ","A:"+cursor.getFloat(0)+":"+cursor.getFloat(1)+":"+cursor.getFloat(2)+":"+cursor.getFloat(3)+":"+cursor.getInt(4)+":"+cursor.getInt(5)+":"+cursor.getInt(6));
+				//Log.e("今ここ","A:"+cursor.getFloat(0)+":"+cursor.getFloat(1)+":"+cursor.getFloat(2)+":"+cursor.getFloat(3)+":"+cursor.getInt(4)+":"+cursor.getInt(5)+":"+cursor.getInt(6));
 				datas.add(new SensorData(
 						new float[]{cursor.getFloat(1), cursor.getFloat(2), cursor.getFloat(3)},
 						type,//違うタイプが入っていたら問題なので、俺のqueryがtypeを間違えるわけがない
@@ -160,7 +162,7 @@ public class LearningDBManager {
 			return datas;
 		}
 	}
-		
+
 	//とりあえずデータとって、ハッシュで種類に分けて格納して渡せばいいかなーと思ったけどセンサごとに個別に設定できるのはみりょくてきだったー
 	//ってことでお蔵入り
 	/*
@@ -175,7 +177,7 @@ public class LearningDBManager {
 				null, null,
 				LearningDBHelper.COL_TIMESTAMP + " ASC",
 				null);
-		
+
 		//取得した値を種別ごとに入れる、入れたい
 		HashMap<String, ArrayList<SensorData>> dataMap = new HashMap<String, ArrayList<SensorData>>();
 		try {
@@ -198,5 +200,117 @@ public class LearningDBManager {
 			return photos;
 		}
 	}
-	*/
+	 */
+
+	public static void writeSensorData2File(Context context){
+		Log.e("File kakikomi","7");
+		LearningDBHelper helper = LearningDBHelper.getInstance(context);
+		SQLiteDatabase db = helper.getReadableDatabase();
+		Cursor cursor = db.query(LearningDBHelper.TABLE_NAME, null,null,null,null,null,null);
+		StringBuilder str = new StringBuilder();
+		FileOutputStream fos;
+
+		Log.e("File kakikomi","8");
+		try {
+			Log.e("File kakikomi","9");
+			fos = new FileOutputStream(Environment.getExternalStorageDirectory() +
+					LogToData.FILE_DIRECTORY +
+					LogToData.FILE_NAME,true);
+			try {
+				Log.e("File kakikomi","10");
+				while (cursor.moveToNext()) {
+					for(int i = 0;i < cursor.getColumnCount();i++){
+						str.append(cursor.getString(i));
+						str.append(",");
+						//Log.e("database", "[" + cursor.getColumnName(i) + ":" + cursor.getString(i) + "]");
+					}
+					str.append("\n");
+					fos.write(str.toString().getBytes(),0,str.length());
+					str.setLength(0);
+				}
+				//Log.e("database",str.toString());
+				Log.e("File kakikomi","11");
+			} catch (Exception e) {
+				try {
+					if (fos!=null){
+						fos.close();
+					}
+				} catch (Exception e2) {}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Log.e("File kakikomi","12");
+	}
+
+	public static int sucoshiWriteSensorData2File(Context context, int id){
+		int lastId = id;
+		Log.e("File kakikomi","7");
+		LearningDBHelper helper = LearningDBHelper.getInstance(context);
+		SQLiteDatabase db = helper.getReadableDatabase();
+		Cursor cursor = db.query(LearningDBHelper.TABLE_NAME,
+				null,
+				"? < " + LearningDBHelper.COL_ID,
+				new String[]{id + ""},
+				null, null,
+				LearningDBHelper.COL_ID + " ASC",
+				"1000");
+		StringBuilder str = new StringBuilder();
+		FileOutputStream fos;
+
+		Log.e("File kakikomi","8");
+		try {
+			Log.e("File kakikomi","9");
+			fos = new FileOutputStream(Environment.getExternalStorageDirectory() +
+					LogToData.FILE_DIRECTORY +
+					LogToData.FILE_NAME,true);
+			try {
+				Log.e("File kakikomi","10");
+				while (cursor.moveToNext()) {
+					for(int i = 0;i < cursor.getColumnCount();i++){
+						str.append(cursor.getString(i));
+						str.append(",");
+						//Log.e("database", "[" + cursor.getColumnName(i) + ":" + cursor.getString(i) + "]");
+					}
+					str.append("\n");
+					fos.write(str.toString().getBytes(),0,str.length());
+					str.setLength(0);
+					if(lastId < cursor.getInt(0))	lastId = cursor.getInt(0);
+				}
+				//Log.e("database",str.toString());
+				Log.e("File kakikomi","11");
+			} catch (Exception e) {
+				try {
+					if (fos!=null){
+						fos.close();
+					}
+				} catch (Exception e2) {}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Log.e("File kakikomi","12");
+		return lastId;
+	}
+	public static int countDats(Context context){
+		LearningDBHelper helper = LearningDBHelper.getInstance(context);
+		SQLiteDatabase db = helper.getReadableDatabase();
+		Cursor cursor = db.query(LearningDBHelper.TABLE_NAME, new String[]{"count(*)"},null, null, null, null, null);
+		StringBuilder str = new StringBuilder();
+
+		try {
+			while (cursor.moveToNext()) {
+				for(int i = 0;i < cursor.getColumnCount();i++){
+					str.append(cursor.getString(i));
+					str.append(",");
+					//Log.e("database", "[" + cursor.getColumnName(i) + ":" + cursor.getString(i) + "]");
+				}
+				str.append("\n");
+			}
+			Log.e("database",str.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
 }
