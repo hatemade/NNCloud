@@ -1,14 +1,11 @@
 package net.kiknlab.nncloud.db;
 
 import java.io.File;
-import java.io.FileOutputStream;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class LogToData extends AsyncTask<Void, Void, Boolean>{

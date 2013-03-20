@@ -133,15 +133,16 @@ public class LearningDBManager {
 	}
 
 	//センサのデータを指定したタイプと時間で取得
-	public static ArrayList<SensorData> getSensorData(Context context, int type, long time) {
+	public static ArrayList<SensorData> getSensorData(Context context, int type, long time, long length) {
 		LearningDBHelper helper = LearningDBHelper.getInstance(context);
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Log.e("今ここ","400:"+type);
 		Cursor cursor = db.query(//指定された時間から最新のデータを集める
 				LearningDBHelper.TABLE_NAME,
 				null,
-				"? = " + LearningDBHelper.COL_TYPE + " and ? <= " + LearningDBHelper.COL_TIMESTAMP,
-				new String[]{type + "", time + ""},
+				LearningDBHelper.COL_TIMESTAMP + " between ? and ? and " +
+				"? = " + LearningDBHelper.COL_TYPE,
+				new String[]{(time - length) + "", time + "", type + ""},
 				null, null,
 				LearningDBHelper.COL_ID + " DESC",
 				null);

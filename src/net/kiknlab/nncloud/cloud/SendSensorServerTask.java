@@ -43,11 +43,10 @@ public class SendSensorServerTask extends AsyncTask<Void, Void, Boolean>{
 		final HttpPost post = new HttpPost(CloudManager.URL_SENDSENSORSERVER);
 		String data = "";
 
-		sp.edit().commit();
 		String session = sp.getString(CloudManager.PREF_SESSION, null);
 		if(session == null)	return false;
 		data += "10,20,30,1,2,2013-02-24 21:00:00.001#";//ほんとはここででーたべーすさんにおねがいしてでーたをもらいます
-		data += "11,20,30,1,2,2013-02-24 21:00:00.002#";
+		data += "11,20,30,1,2,2013-02-24 21:00:00.002#";//でも、これはてすとなのでこれでいいのです
 		data += "10,22,30,1,2,2013-02-24 21:00:00.003#";
 		data += "10,20,33,1,2,2013-02-24 21:00:00.004#";
 		data += "14,24,34,1,2,2013-02-24 21:00:00.005";

@@ -1,8 +1,10 @@
 package net.kiknlab.nncloud.sensor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.kiknlab.nncloud.db.LearningDBManager;
+import net.kiknlab.nncloud.util.SensorData;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -30,24 +32,22 @@ public class SensorAdmin implements SensorEventListener{
 	/* センサーの値 */
 	public float[] orientationValues   = new float[3];
 	public int orientationAccuracy;
-	public float[] magneticValues      = new float[3];
-	public float[] accelerometerValues = new float[3];
+	public ArrayList<SensorData> accelerometerDatas;
+	public ArrayList<SensorData> magneticDatas;
+	public ArrayList<SensorData> orientationDatas;
 	//設定！動的に変更可能にしたい（希望声）
 	private int sensorSpeed;
-	//計算したりするよう変数？簡潔な言い方だれか考えて(´･ω･`)
-	public double sumTime;
-	public double preGetTime, nowGetTime;
-	public int times;
 	//保存する？
 	private Context mContext;
-	private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！
-	public int getTimes;
-	public static final int TransactionPeriod = 800;
+	//private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！
+	//public static final int TransactionPeriod = 800;
 
 	public SensorAdmin(Object sensorService, Context context) {
 		mContext = context;
 		
-		//センサスピードの定義、オプションで選べてもいいけど、インターネットから最新の最適な値を取得してもいい
+		//センサスピードの定義、オプションで選べてもいいけど、インターネットから最新の最適な値を取得してもいい、してみたい
+		//よくよく見てみたら、ディレイの速さintで設定できるのかmicrosecかー、ん？まいくろ？
+		//なんか、他のアプリでセンサー取得してると、そっちで設定された速さが反映される？用検証
 		sensorSpeed = SensorManager.SENSOR_DELAY_FASTEST;
 
 		//センサーマネージャの取得、書き方がCHAOS！うー！にゃー！………ちゃんと書き直そう！気が向いたらな！どうせ初期化時だけだから大した負荷じゃないはずmaybe
@@ -58,24 +58,20 @@ public class SensorAdmin implements SensorEventListener{
 		if (list.size()>0) accelerometer=list.get(0);
 		list=sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
 		if (list.size()>0) magnetic=list.get(0);
+		/*
 		list=sensorManager.getSensorList(Sensor.TYPE_PROXIMITY);
 		if (list.size()>0) prox=list.get(0);
 		list=sensorManager.getSensorList(Sensor.TYPE_LIGHT);
-		if (list.size()>0) light=list.get(0);
+		if (list.size()>0) light=list.get(0);*/
 
 		//Orientation周りを初期化！
 		IsAccele = false;
 		IsMagnetic = false;
-
-		//計算なんとかかんとか初期化
-		sumTime = 0;
-		nowGetTime = preGetTime = java.lang.System.currentTimeMillis();
-		times = 0;
 		
-		//DB初期化して開始！
-		mDb = new LearningDBManager();
-		mDb.startTransaction(context);
-		getTimes = 0;
+		//Sensorの値を格納するArrayList
+		accelerometerDatas = new ArrayList<SensorData>();
+		magneticDatas = new ArrayList<SensorData>();
+		orientationDatas = new ArrayList<SensorData>();
 	}
 
 	public void resume() {
@@ -96,7 +92,6 @@ public class SensorAdmin implements SensorEventListener{
 
 	//センサーの処理の停止
 	public void stop() {
-		mDb.endTransaction();
 		sensorManager.unregisterListener(this);
 	}
 
@@ -105,51 +100,52 @@ public class SensorAdmin implements SensorEventListener{
 	public void onSensorChanged(SensorEvent event) {
 		switch(event.sensor.getType()){
 		case Sensor.TYPE_ACCELEROMETER:
-			mDb.insertTransaction(mContext, event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis());
-			getTimes++;
-			Log.e("acce","");
-			accelerometerValues = event.values.clone();
+			accelerometerDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
 			orientationAccuracy = event.accuracy;
 			IsAccele = true;
 			IsMagnetic = false;//加速度を取得した直後に取得した磁気でOrientationを計算する
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			mDb.insertTransaction(mContext, event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis());
-			getTimes++;
-			magneticValues = event.values.clone();
+			magneticDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
 			orientationAccuracy += event.accuracy;
 			IsMagnetic = true;
 			break;
 		case Sensor.TYPE_PROXIMITY:
-			Log.e("DebugShiro",event.timestamp+"\n"+java.lang.System.currentTimeMillis());//時間がeventから取得できるか後で確認、できたらそっちを使う
-			mDb.insertTransaction(mContext, event.values[0], event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis());
-			getTimes++;
 			break;
 		case Sensor.TYPE_LIGHT:
-			mDb.insertTransaction(mContext, event.values[0], event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis());
-			getTimes++;
 			break;
 		}
 		
 		//加速度と磁気使って傾きを作成！
 		if(IsAccele&&IsMagnetic){
-			SensorManager.getRotationMatrix(inR, null, accelerometerValues, magneticValues);
+			SensorManager.getRotationMatrix(inR, null, accelerometerDatas.get(accelerometerDatas.size() - 1).values, magneticDatas.get(magneticDatas.size() - 1).values);
 			SensorManager.remapCoordinateSystem(inR, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR);//これでよかったのか？いいんだよな？…これでいい…
 			SensorManager.getOrientation(outR, orientationValues);//0がyawで、2がpitchで、1がrollなので注意、Orientationセンサー
 			orientationAccuracy = (int)(orientationAccuracy/2);
+			accelerometerDatas.add(new SensorData(orientationValues, TYPE_ORIENTATION_MAKE, orientationAccuracy, java.lang.System.currentTimeMillis()));
 			IsAccele = false;
 			IsMagnetic = false;
-			mDb.insertTransaction(mContext, new float[]{orientationValues[0],orientationValues[2],orientationValues[1]}, TYPE_ORIENTATION_MAKE, orientationAccuracy, java.lang.System.currentTimeMillis());
-			getTimes++;
-		}
-		
-		//一定回数実行したのちトランザクションを実行
-		if(getTimes >= TransactionPeriod){
-			mDb.endTransaction();
-			getTimes = 0;
-			mDb.beginTransaction();
 		}
 	}
+	
+	public void removeAllOldSensorDatas(long time){
+		removeOldSensorDatas(accelerometerDatas, time);
+		removeOldSensorDatas(magneticDatas, time);
+		removeOldSensorDatas(orientationDatas, time);
+	}
+	
+	public void removeOldSensorDatas(ArrayList<SensorData> Datas, long time){
+		int Index = Datas.size() - 1;
+		for(int i = Index;i >= 0;i--){
+			if(Datas.get(i).timestamp < time){
+				Index = i;
+				break;
+			}
+		}
+		for(int i = Index;i >= 0;i--){
+			Datas.remove(i);
+		}
+	}	
 
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1) {

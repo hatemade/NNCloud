@@ -1,7 +1,6 @@
 package net.kiknlab.nncloud.cloud;
 
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,7 +44,6 @@ public class LoginServerTask extends AsyncTask<Void, Void, Boolean>{
 		final HttpPost post = new HttpPost(CloudManager.URL_LOGINSERVER);
 
 		//POSTのせってーい、めどい、メソッドにしておくべき？めんどーい
-		sp.edit().commit();
 		String name = sp.getString(CloudManager.PREF_NAME, null);
 		String pass = sp.getString(CloudManager.PREF_PASS, null);
 		if(name == null||pass == null)	return false;
@@ -78,25 +76,5 @@ public class LoginServerTask extends AsyncTask<Void, Void, Boolean>{
 	protected void onPostExecute(Boolean result) 
 	{
 		dialog.dismiss();
-	}
-
-	public static Boolean checkSession(Context context){
-		String sessionTime;
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-		sp.edit().commit();
-		if(sp.getString(CloudManager.PREF_SESSION, null) != null){
-			if((sessionTime = sp.getString(CloudManager.PREF_SESSION_TIME, null)) != null){
-				SimpleDateFormat sdf = new SimpleDateFormat(CloudManager.DATE_PATTERN, Locale.JAPAN);
-				try {
-					Date sessionDate = sdf.parse(sessionTime);
-					if(new Date().getTime() - sessionDate.getTime() < 1000 * 60 * 60 * 23){
-						return true;
-					}
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return false;
 	}
 }

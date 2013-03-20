@@ -1,6 +1,9 @@
 package net.kiknlab.nncloud.cloud;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -26,6 +29,7 @@ public class CloudManager {
 	public final static int JSON_CODE_SUCCESS		= 200;
 	public final static String DATE_PATTERN			= "yyyy-MM-dd HH:mm:ss";
 	public final static String DATETIME_PATTERN		= "yyyy-MM-dd HH:mm:ss.SSS";
+	public final static int PREF_SESSION_VALID_TIME	= 1000 * 60 * 60 * 24;
 	//JoinServer用
 	public final static String PREF_JOINED			= "PREF_JOINED";
 	public final static String PREF_NAME			= "PREF_NAME";
@@ -48,26 +52,64 @@ public class CloudManager {
 	public final static int POST_LIMIT				= 50;
 	public final static String SENSOR_DIALOG_TITLE	= "Let's send sensor!";
 	//CloudManager用変数
+	/*
+	private Context mContext;
 	private String user;
 	private String pass;
 	public boolean isConnected;
 	private SharedPreferences sp;
+	*/
 
-	CloudManager(Context context){
-		sp = PreferenceManager.getDefaultSharedPreferences(context);
-		sp.edit().commit();
-		if(sp.getBoolean(PREF_JOINED, false)){
-			user = sp.getString(PREF_NAME, null);
-			pass = sp.getString(PREF_PASS, null);
-			if(user != null || pass != null){
-				//JoinServer();
+	//あとでダイアログ消さないと
+
+	public static boolean connectServer(Context context){
+		if(checkUserWithoutAdd(context)){
+			if(checkSessionWithoutAdd(context)){
+				return true;
 			}
-		}else{
-			//JoinServer();
 		}
-		isConnected = false;
+		return false;
 	}
 
+	public static boolean checkUserWithoutAdd(Context context){//ユーザをチェックして、もしなかったら追加するけど、こんなめしょっどでいいんだろうか
+		if(checkUser(context))	return true;
+		new JoinServerTask(context).execute();
+		if(checkUser(context))	return true;
+		return false;
+	}
+	public static boolean checkUser(Context context){
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+		if(!sp.getBoolean(PREF_JOINED, false) &&
+				(sp.getString(PREF_NAME, null) != null ||
+				sp.getString(PREF_PASS, null) != null)){
+			return true;
+		}
+		return false;
+	}
+	public static boolean checkSessionWithoutAdd(Context context){
+		if(checkSession(context)) return true;
+		new LoginServerTask(context).execute();
+		if(checkSession(context)) return true;		
+		return false;
+	}
+	public static boolean checkSession(Context context){//LoginServerTask用に作ったのでstaticメソッド、使わなかったけど
+		String sessionTime;
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+		if(sp.getString(CloudManager.PREF_SESSION, null) != null){
+			if((sessionTime = sp.getString(CloudManager.PREF_SESSION_TIME, null)) != null){
+				SimpleDateFormat sdf = new SimpleDateFormat(CloudManager.DATE_PATTERN, Locale.JAPAN);
+				try {
+					Date sessionDate = sdf.parse(sessionTime);
+					if(new Date().getTime() - sessionDate.getTime() < 1000 * 60 * 60 * 23){
+						return true;
+					}
+				} catch (java.text.ParseException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return false;
+	}
 	public static JSONObject getJSONFromServer(HttpPost post){
 		final HttpClient client = new DefaultHttpClient();
 		JSONObject resultJObj;
