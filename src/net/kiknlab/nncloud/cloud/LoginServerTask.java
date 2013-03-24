@@ -14,29 +14,21 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 public class LoginServerTask extends AsyncTask<Void, Void, Boolean>{
-	private Context mContext;
-	private ProgressDialog dialog = null;
 	private SharedPreferences sp;
 
 	public LoginServerTask(Context context) {
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
-		this.mContext = context;
 	}
 
 	@Override
 	protected void onPreExecute()
 	{
-		dialog = new ProgressDialog(mContext);
-		dialog.setTitle(CloudManager.LOGIN_DIALOG_TITLE);
-		dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-		dialog.show();
 	}
 
 	@Override
@@ -75,6 +67,5 @@ public class LoginServerTask extends AsyncTask<Void, Void, Boolean>{
 	@Override
 	protected void onPostExecute(Boolean result) 
 	{
-		dialog.dismiss();
 	}
 }

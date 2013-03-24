@@ -25,6 +25,7 @@ public class CloudManager {
 	public final static String URL_JOINSERVER 		= "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/JoinMe.php";
 	public final static String URL_LOGINSERVER 		= "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/LoginMe.php";
 	public final static String URL_SENDSENSORSERVER = "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/SendMe.php";
+	public final static String URL_SENDMILESERVER = "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/MileUp.php";
 	public final static String JSON_CODE			= "CODE";
 	public final static int JSON_CODE_SUCCESS		= 200;
 	public final static String DATE_PATTERN			= "yyyy-MM-dd HH:mm:ss";
@@ -51,6 +52,8 @@ public class CloudManager {
 	public final static String JSON_FAIL			= "FAIL";
 	public final static int POST_LIMIT				= 50;
 	public final static String SENSOR_DIALOG_TITLE	= "Let's send sensor!";
+	//SendMileServer用
+	public final static String POST_MILE			= "mile";
 	//CloudManager用変数
 	/*
 	private Context mContext;
@@ -79,7 +82,7 @@ public class CloudManager {
 	}
 	public static boolean checkUser(Context context){
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-		if(!sp.getBoolean(PREF_JOINED, false) &&
+		if(sp.getBoolean(PREF_JOINED, false) &&
 				(sp.getString(PREF_NAME, null) != null ||
 				sp.getString(PREF_PASS, null) != null)){
 			return true;
@@ -92,7 +95,7 @@ public class CloudManager {
 		if(checkSession(context)) return true;		
 		return false;
 	}
-	public static boolean checkSession(Context context){//LoginServerTask用に作ったのでstaticメソッド、使わなかったけど
+	public static boolean checkSession(Context context){
 		String sessionTime;
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 		if(sp.getString(CloudManager.PREF_SESSION, null) != null){

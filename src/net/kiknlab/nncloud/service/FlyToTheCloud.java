@@ -1,10 +1,14 @@
 package net.kiknlab.nncloud.service;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import net.kiknlab.nncloud.cloud.CloudManager;
+import net.kiknlab.nncloud.cloud.SendMileServerTask;
 import net.kiknlab.nncloud.sensor.SensorAdmin;
 import net.kiknlab.nncloud.sensor.StateInference;
+import net.kiknlab.nncloud.util.SensorData;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -16,13 +20,16 @@ import android.util.Log;
 
 public class FlyToTheCloud extends Service{
 	private final IBinder mBinder = new FTTCBinder();
-	private final static int THREAD_INTERVAL = 1000 * 60 * 60 * 1;
-	private Thread mThread;
+	private SharedPreferences sp;
 	private SensorAdmin mSensor;
 	private StateInference mState;
-	final int INTERVAL_PERIOD = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
-	Timer mTimer = new Timer();
-	private SharedPreferences sp;
+	//推定スレッドとマイル送信スレッド
+	private final static int SEND_SERVER_THREAD_INTERVAL = 1000 * 60 * 60 * 1;
+	public final static String SEND_MILES = "SEND_MILES";
+	Timer mSendServerTimer = new Timer();
+	private float sendMile;
+	final int INFERENCE_THREAD_INTERVAL = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
+	Timer mInferenceTimer = new Timer();
 	
 	@Override
 	public void onCreate() {
@@ -33,27 +40,28 @@ public class FlyToTheCloud extends Service{
 		mSensor.resume();
 		mState = new StateInference(getApplication());
 		sp = PreferenceManager.getDefaultSharedPreferences(getApplication());
+		sendMile = sp.getFloat(SEND_MILES, mState.mile);
 		
-		mTimer.schedule(new TimerTask() {
-			int acceleIndex, orientationIndex;
+		mInferenceTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				acceleIndex = mSensor.accelerometerDatas.size();
-				orientationIndex = mSensor.orientationDatas.size();
-				long time = java.lang.System.currentTimeMillis() - sp.getLong(StateInference.TIME_LENGTH, StateInference.TIME_LENGTH_DEFAULT);
+				long time = java.lang.System.currentTimeMillis()
+						- sp.getLong(StateInference.TIME_LENGTH, StateInference.TIME_LENGTH_DEFAULT);
 				mSensor.removeAllOldSensorDatas(time);
-				//mState.judge(
-				//		acceleIndex, mSensor.accelerometerDatas, mSensor.orientationDatas, null
-				//		);
+				Log.e("a",time + "");
+				mState.inference(
+						(List<SensorData>)mSensor.accelerometerDatas.clone(),
+						(List<SensorData>)mSensor.orientationDatas.clone());
 			}
-		}, 0, INTERVAL_PERIOD);
-		mThread = new Thread(new Thread(){
+		}, 0, INFERENCE_THREAD_INTERVAL);
+		mSendServerTimer.schedule(new TimerTask() {
 			@Override
-			public void run(){
-				
+			public void run() {
+				if(CloudManager.connectServer(getApplication())){
+					new SendMileServerTask(getApplication()).execute(new Float[]{mState.mile, sendMile});
+				}
 			}
-		});
-		mThread.start();
+		}, 0, SEND_SERVER_THREAD_INTERVAL);
 	}
 
 	public String getTest(){//(σ･∀･)σｹﾞｯﾂ!!
@@ -64,7 +72,8 @@ public class FlyToTheCloud extends Service{
 				":X" + Math.floor(Math.toDegrees(mSensor.orientationValues[2])) +
 				":Z" + Math.floor(Math.toDegrees(mSensor.orientationValues[1])) +
 				":状態" + mState.state +
-				":歩数" + mState.numSteps;
+				":歩数" + mState.numSteps +
+				":マイル" + mState.mile;
 	}
 
 	public class FTTCBinder extends Binder {
@@ -81,9 +90,13 @@ public class FlyToTheCloud extends Service{
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		// 解放せよ！われわれに働く気はない！負けだと思う！
 		mState.stop();
 		mSensor.stop();
-		mThread = null;
-		Log.e("Sevice Run", "onDestroy");
+		mInferenceTimer.cancel();
+		mInferenceTimer = null;
+		mSendServerTimer.cancel();
+		mSendServerTimer = null;
+		// 解放されました、今日から無職です、メモリはフリーターみたいな、フリーな領域みたいな
 	}
 }

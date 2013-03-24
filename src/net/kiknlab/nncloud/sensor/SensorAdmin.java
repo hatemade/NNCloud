@@ -30,6 +30,8 @@ public class SensorAdmin implements SensorEventListener{
 	float[] outR = new float[MATRIX_SIZE];
 	//float[]    I = new float[MATRIX_SIZE];
 	/* センサーの値 */
+	public float[] accelerometerValues   = new float[3];
+	public float[] magneticValues   = new float[3];
 	public float[] orientationValues   = new float[3];
 	public int orientationAccuracy;
 	public ArrayList<SensorData> accelerometerDatas;
@@ -48,7 +50,7 @@ public class SensorAdmin implements SensorEventListener{
 		//センサスピードの定義、オプションで選べてもいいけど、インターネットから最新の最適な値を取得してもいい、してみたい
 		//よくよく見てみたら、ディレイの速さintで設定できるのかmicrosecかー、ん？まいくろ？
 		//なんか、他のアプリでセンサー取得してると、そっちで設定された速さが反映される？用検証
-		sensorSpeed = SensorManager.SENSOR_DELAY_FASTEST;
+		sensorSpeed = 100000;//SensorManager.SENSOR_DELAY_FASTEST;
 
 		//センサーマネージャの取得、書き方がCHAOS！うー！にゃー！………ちゃんと書き直そう！気が向いたらな！どうせ初期化時だけだから大した負荷じゃないはずmaybe
 		//おなかすいた
@@ -101,12 +103,14 @@ public class SensorAdmin implements SensorEventListener{
 		switch(event.sensor.getType()){
 		case Sensor.TYPE_ACCELEROMETER:
 			accelerometerDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
+			accelerometerValues = event.values;
 			orientationAccuracy = event.accuracy;
 			IsAccele = true;
 			IsMagnetic = false;//加速度を取得した直後に取得した磁気でOrientationを計算する
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
 			magneticDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
+			magneticValues = event.values;
 			orientationAccuracy += event.accuracy;
 			IsMagnetic = true;
 			break;
@@ -118,11 +122,11 @@ public class SensorAdmin implements SensorEventListener{
 		
 		//加速度と磁気使って傾きを作成！
 		if(IsAccele&&IsMagnetic){
-			SensorManager.getRotationMatrix(inR, null, accelerometerDatas.get(accelerometerDatas.size() - 1).values, magneticDatas.get(magneticDatas.size() - 1).values);
+			SensorManager.getRotationMatrix(inR, null, accelerometerValues, magneticValues);
 			SensorManager.remapCoordinateSystem(inR, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR);//これでよかったのか？いいんだよな？…これでいい…
 			SensorManager.getOrientation(outR, orientationValues);//0がyawで、2がpitchで、1がrollなので注意、Orientationセンサー
 			orientationAccuracy = (int)(orientationAccuracy/2);
-			accelerometerDatas.add(new SensorData(orientationValues, TYPE_ORIENTATION_MAKE, orientationAccuracy, java.lang.System.currentTimeMillis()));
+			orientationDatas.add(new SensorData(orientationValues, TYPE_ORIENTATION_MAKE, orientationAccuracy, java.lang.System.currentTimeMillis()));
 			IsAccele = false;
 			IsMagnetic = false;
 		}
@@ -135,14 +139,14 @@ public class SensorAdmin implements SensorEventListener{
 	}
 	
 	public void removeOldSensorDatas(ArrayList<SensorData> Datas, long time){
-		int Index = Datas.size() - 1;
-		for(int i = Index;i >= 0;i--){
+		int index = -1;
+		for(int i = Datas.size() - 1;i >= 0;i--){
 			if(Datas.get(i).timestamp < time){
-				Index = i;
+				index = i;
 				break;
 			}
 		}
-		for(int i = Index;i >= 0;i--){
+		for(int i = index;i >= 0;i--){
 			Datas.remove(i);
 		}
 	}	

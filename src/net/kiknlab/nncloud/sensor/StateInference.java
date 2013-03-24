@@ -1,18 +1,12 @@
 package net.kiknlab.nncloud.sensor;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.List;
 
-import net.kiknlab.nncloud.db.LearningDBManager;
 import net.kiknlab.nncloud.util.SensorData;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -20,15 +14,15 @@ public class StateInference {//状態推定
 	SharedPreferences sp;
 	Context mContext;
 	public static final String MILEAGE_POINT = "MILAGE_POINT";
-	public float mile;
+	public float mile;//みゃいるじゃないよ？
 	// 推定変数
 	public String state;
 	public int numSteps;
 	private boolean inElevator;
 
 	// スレッド三回回ってわんわん
-	final int INTERVAL_PERIOD = 20000;// msecかと思ったか，あたりだよ！もう一本！millisecondsです…はい…
-	Timer timer = new Timer();
+	//final int INTERVAL_PERIOD = 20000;// msecかと思ったか，あたりだよ！もう一本！millisecondsです…はい…
+	//Timer timer = new Timer();
 
 	//後から追加したので、あとから整理する
 	//閾値は時間をもとに増減させたいなら、個々のデフォルトに時間をかければいいかなぁ
@@ -59,6 +53,8 @@ public class StateInference {//状態推定
 	public StateInference(Context context) {
 		// ⊂(^ω^ )二二⊃こいつぁ間に合いそうにないお 2013/03/10
 		// ⊂(^ω^ )二二⊃こんかいも間に合いそうにないお 2013/03/18
+		// ⊂(^ω^ )二二⊃やっぱむりだお 2013/03/21
+		// ⊂(;ω; )二二⊃ひぎぃあふぅぅぅぅぅぅ 2013/03/24
 		mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		mile = sp.getFloat(MILEAGE_POINT, 0);
@@ -66,27 +62,14 @@ public class StateInference {//状態推定
 		// センサー設定
 		state = "stop";
 		inElevator = false;
-
-		//すれっどすれっどたのしいな
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				Log.e("遅い","0");
-				inference();// 推定
-				Log.e("遅い","11");
-			}
-		}, 0, INTERVAL_PERIOD);
 	}
 
 	public void stop() {
-		// 解放せよ！われらは働かない者である！
 		sp.edit().putFloat(MILEAGE_POINT, mile).commit();
-		timer.cancel();
-		timer = null;
-		// 解放された―、うまうま
 	}
 
-	public void inference() {//インファレンスですの
+	public void inference(List<SensorData> acceles, List<SensorData> orientations) {//インファレンスですの
+		/*
 		//推定に必要な変数
 		long judgeTime = sp.getLong(TIME_LENGTH, TIME_LENGTH_DEFAULT);//判定時間を決めます
 		//センサの値
@@ -98,24 +81,23 @@ public class StateInference {//状態推定
 				mContext, SensorAdmin.TYPE_ORIENTATION_MAKE, time, judgeTime);
 		Log.e("遅い","2");
 		SimpleDateFormat sdf = new SimpleDateFormat("HH':'mm':'ss'.'SSS");
+		*/
 		Log.e("データ数","[Accele:"+acceles.size()+"]");
 		Log.e("データ数","[Orient:"+orientations.size()+"]");
-		Log.e("現在時",sdf.format(new Date(time)) + "");
-		for(int i = 0;i < acceles.size();i++){
-			Log.e("Acceles","["+i+"]["+sdf.format(new Date(acceles.get(i).timestamp))+"]" + acceles.get(i).timestamp);
-		}
 		if(acceles.size() <= sp.getInt(ELEVATOR_DIFFERENT_INTERVAL, ELEVATOR_DIFFERENT_INTERVAL_DEFAULT) || orientations.size() <= 0)	return;//値がなければ計算できませんよ
 		Log.e("遅い","3");
 		//平均とか分散とか垂直加速度とか歩数とか、多分この四つで全部？二つで済んだ
 		ArrayList<Float> verticalAcceles = calcVerticalAcceleration(acceles, orientations);
 		Log.e("遅い","4");
-		int walkCount = 0;//countWalk(verticalAcceles);
+		int walkCount = countWalk(verticalAcceles);
 		Log.e("遅い","5");
 		this.numSteps += walkCount;
 		Log.e("遅い","6");
+		
+		judge(walkCount, acceles, orientations, verticalAcceles);
 	}
 	
-	public void judge(int walkCount, ArrayList<SensorData> acceles, ArrayList<SensorData> orientations, ArrayList<Float> verticalAcceles){//ジャッジメントですの
+	public void judge(int walkCount, List<SensorData> acceles, List<SensorData> orientations, ArrayList<Float> verticalAcceles){//ジャッジメントですの
 		//判定するよー！
 		// 歩行かそうでないかを判定した後、歩行の場合階段かどうか、歩行でないばあいエレベータの判定を行う
 		if(judgeWalk(walkCount)){
@@ -155,7 +137,7 @@ public class StateInference {//状態推定
 		}
 		else	return false;
 	}
-	public boolean judgeElevator(ArrayList<Float> verticalAcceles, ArrayList<SensorData> acceles, boolean inElevator){
+	public boolean judgeElevator(ArrayList<Float> verticalAcceles, List<SensorData> acceles, boolean inElevator){
 		//timestampを持ってるのは元データだから引数にとってる。verticalAccelesをSensorData型にすればいいんだけど、無駄なデータを持たせたくない…
 		ArrayList<Float> differentVerticalAcceles = new ArrayList<Float>();
 		int differentInterval = sp.getInt(ELEVATOR_DIFFERENT_INTERVAL, ELEVATOR_DIFFERENT_INTERVAL_DEFAULT);
@@ -244,7 +226,7 @@ public class StateInference {//状態推定
 		return walkCount;
 	}
 
-	public float[] calcOrientationXZVariance(ArrayList<SensorData> datas){
+	public float[] calcOrientationXZVariance(List<SensorData> datas){
 		//計算量減らすために汎用性を犠牲にした。もっといい方法があるはずだし、使いまわせない関数って嫌いなので、任せたぜ未来のオレ
 		float avg1 = 0, avg2 = 0;
 		float variance1 = 0, variance2 = 0;
@@ -272,7 +254,7 @@ public class StateInference {//状態推定
 		return new float[]{avg, variance};
 	}
 
-	public ArrayList<Float> calcVerticalAcceleration(ArrayList<SensorData> accele,ArrayList<SensorData> orientation){// 垂直加速度の配列の計算
+	public ArrayList<Float> calcVerticalAcceleration(List<SensorData> accele,List<SensorData> orientation){// 垂直加速度の配列の計算
 		ArrayList<Float> verticalAcceles = new ArrayList<Float>();
 		int orientationIndex = 0;
 		boolean checkIndex = true;
