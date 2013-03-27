@@ -41,12 +41,12 @@ public class SensorAdmin implements SensorEventListener{
 	private int sensorSpeed;
 	//保存する？
 	private Context mContext;
-	//private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！
+	//private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！ 追記:いらなかった
 	//public static final int TransactionPeriod = 800;
 
 	public SensorAdmin(Object sensorService, Context context) {
 		mContext = context;
-		
+
 		//センサスピードの定義、オプションで選べてもいいけど、インターネットから最新の最適な値を取得してもいい、してみたい
 		//よくよく見てみたら、ディレイの速さintで設定できるのかmicrosecかー、ん？まいくろ？
 		//なんか、他のアプリでセンサー取得してると、そっちで設定された速さが反映される？用検証
@@ -69,7 +69,7 @@ public class SensorAdmin implements SensorEventListener{
 		//Orientation周りを初期化！
 		IsAccele = false;
 		IsMagnetic = false;
-		
+
 		//Sensorの値を格納するArrayList
 		accelerometerDatas = new ArrayList<SensorData>();
 		magneticDatas = new ArrayList<SensorData>();
@@ -119,7 +119,7 @@ public class SensorAdmin implements SensorEventListener{
 		case Sensor.TYPE_LIGHT:
 			break;
 		}
-		
+
 		//加速度と磁気使って傾きを作成！
 		if(IsAccele&&IsMagnetic){
 			SensorManager.getRotationMatrix(inR, null, accelerometerValues, magneticValues);
@@ -131,14 +131,20 @@ public class SensorAdmin implements SensorEventListener{
 			IsMagnetic = false;
 		}
 	}
-	
-	public void removeAllOldSensorDatas(long time){
-		removeOldSensorDatas(accelerometerDatas, time);
-		removeOldSensorDatas(magneticDatas, time);
-		removeOldSensorDatas(orientationDatas, time);
+
+	public boolean removeAllOldSensorDatas(long time){
+		try{
+			removeOldSensorDatas(accelerometerDatas, time);
+			removeOldSensorDatas(magneticDatas, time);
+			removeOldSensorDatas(orientationDatas, time);
+			return true;
+		}
+		catch(NullPointerException e){
+			return false;
+		}
 	}
-	
-	public void removeOldSensorDatas(ArrayList<SensorData> Datas, long time){
+
+	public void removeOldSensorDatas(ArrayList<SensorData> Datas, long time) throws NullPointerException{
 		int index = -1;
 		for(int i = Datas.size() - 1;i >= 0;i--){
 			if(Datas.get(i).timestamp < time){

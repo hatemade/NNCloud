@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.kiknlab.nncloud.util.SensorData;
+import net.kiknlab.nncloud.util.StateLog;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -16,7 +17,7 @@ public class StateInference {//状態推定
 	public static final String MILEAGE_POINT = "MILAGE_POINT";
 	public float mile;//みゃいるじゃないよ？
 	// 推定変数
-	public String state;
+	public StateLog stateLog;
 	public int numSteps;
 	private boolean inElevator;
 
@@ -55,12 +56,13 @@ public class StateInference {//状態推定
 		// ⊂(^ω^ )二二⊃こんかいも間に合いそうにないお 2013/03/18
 		// ⊂(^ω^ )二二⊃やっぱむりだお 2013/03/21
 		// ⊂(;ω; )二二⊃ひぎぃあふぅぅぅぅぅぅ 2013/03/24
+		// ⊂(｀・ω・´)二二⊃むりだったお 2013/03/25
 		mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		mile = sp.getFloat(MILEAGE_POINT, 0);
 
 		// センサー設定
-		state = "stop";
+		stateLog = new StateLog(StateLog.STATE_STOP);
 		inElevator = false;
 	}
 
@@ -86,7 +88,7 @@ public class StateInference {//状態推定
 		Log.e("データ数","[Orient:"+orientations.size()+"]");
 		if(acceles.size() <= sp.getInt(ELEVATOR_DIFFERENT_INTERVAL, ELEVATOR_DIFFERENT_INTERVAL_DEFAULT) || orientations.size() <= 0)	return;//値がなければ計算できませんよ
 		Log.e("遅い","3");
-		//平均とか分散とか垂直加速度とか歩数とか、多分この四つで全部？二つで済んだ
+		//平均とか分散とか垂直加速度とか歩数とか
 		ArrayList<Float> verticalAcceles = calcVerticalAcceleration(acceles, orientations);
 		Log.e("遅い","4");
 		int walkCount = countWalk(verticalAcceles);
@@ -105,9 +107,9 @@ public class StateInference {//状態推定
 			float[] orientationXZVariance = calcOrientationXZVariance(orientations);
 			if(judgeStair(orientationXZVariance[0], orientationXZVariance[1])){
 				mile += POWER_SAVING_STAIR;//あとで増える量を経過時間をみて変わるように調整する
-				state = "stair";
+				stateLog.setStair(acceles.get(acceles.size() - 1).timestamp);
 			}
-			else	state = "walk";
+			else	stateLog.setWalk(acceles.get(acceles.size() - 1).timestamp);
 		}
 		else{
 			Log.e("遅い","7");
@@ -115,10 +117,10 @@ public class StateInference {//状態推定
 				Log.e("遅い","8");
 				inElevator = true;// エレベータ内である
 				mile += POWER_USING_ELEVATOR;
-				state = "elevator";// エレベーター判定
+				stateLog.setElevator(acceles.get(acceles.size() - 1).timestamp);
 				Log.e("遅い","9");
 			} else {
-				state = "stop";
+				stateLog.setStop(acceles.get(acceles.size() - 1).timestamp);
 			}
 		}
 		Log.e("遅い","10");

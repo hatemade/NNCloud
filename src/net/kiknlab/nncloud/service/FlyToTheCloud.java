@@ -6,6 +6,7 @@ import java.util.TimerTask;
 
 import net.kiknlab.nncloud.cloud.CloudManager;
 import net.kiknlab.nncloud.cloud.SendMileServerTask;
+import net.kiknlab.nncloud.db.StateLogDBManager;
 import net.kiknlab.nncloud.sensor.SensorAdmin;
 import net.kiknlab.nncloud.sensor.StateInference;
 import net.kiknlab.nncloud.util.SensorData;
@@ -30,7 +31,7 @@ public class FlyToTheCloud extends Service{
 	private float sendMile;
 	final int INFERENCE_THREAD_INTERVAL = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
 	Timer mInferenceTimer = new Timer();
-	
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -41,17 +42,19 @@ public class FlyToTheCloud extends Service{
 		mState = new StateInference(getApplication());
 		sp = PreferenceManager.getDefaultSharedPreferences(getApplication());
 		sendMile = sp.getFloat(SEND_MILES, mState.mile);
-		
+
 		mInferenceTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				long time = java.lang.System.currentTimeMillis()
 						- sp.getLong(StateInference.TIME_LENGTH, StateInference.TIME_LENGTH_DEFAULT);
-				mSensor.removeAllOldSensorDatas(time);
-				Log.e("a",time + "");
-				mState.inference(
-						(List<SensorData>)mSensor.accelerometerDatas.clone(),
-						(List<SensorData>)mSensor.orientationDatas.clone());
+				if(mSensor.removeAllOldSensorDatas(time)){
+					Log.e("a",time + "");
+					mState.inference(
+							(List<SensorData>)mSensor.accelerometerDatas.clone(),
+							(List<SensorData>)mSensor.orientationDatas.clone());
+					StateLogDBManager.insertSensorData(getApplication(), mState.stateLog);
+				}
 			}
 		}, 0, INFERENCE_THREAD_INTERVAL);
 		mSendServerTimer.schedule(new TimerTask() {
@@ -68,10 +71,10 @@ public class FlyToTheCloud extends Service{
 		return //"加速度X:" + mSensor.accelerometerValues[0] +
 				//"\nY:" + mSensor.accelerometerValues[1] +
 				//"\nZ:" + mSensor.accelerometerValues[2] +
-				"Y" + Math.floor(Math.toDegrees(mSensor.orientationValues[0])) +
-				":X" + Math.floor(Math.toDegrees(mSensor.orientationValues[2])) +
-				":Z" + Math.floor(Math.toDegrees(mSensor.orientationValues[1])) +
-				":状態" + mState.state +
+				//"Y" + Math.floor(Math.toDegrees(mSensor.orientationValues[0])) +
+				//":X" + Math.floor(Math.toDegrees(mSensor.orientationValues[2])) +
+				//":Z" + Math.floor(Math.toDegrees(mSensor.orientationValues[1])) +
+				":状態" + mState.stateLog.getStateString() +
 				":歩数" + mState.numSteps +
 				":マイル" + mState.mile;
 	}
