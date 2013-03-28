@@ -66,7 +66,7 @@ public class StateLogDBManager {
 				TABLE_NAME,
 				null,
 				COL_TIMESTAMP + " between ? and ?",
-				new String[]{(time - (1000 * 60 * 60 * 24)) + "", time + ""},
+				new String[]{time + "", (time + (1000 * 60 * 60 * 24)) + ""},
 				null, null,
 				COL_ID + " DESC",
 				null);

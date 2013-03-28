@@ -8,6 +8,7 @@ import net.kiknlab.nncloud.service.ServiceManagerForActivity;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -32,10 +33,12 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		Button stopBtn = (Button) findViewById(R.id.stop);
 		ImageView elevBtn = (ImageView)findViewById(R.id.elev_button);
 		ImageView walkBtn = (ImageView)findViewById(R.id.walk_button);
+		ImageView stairBtn = (ImageView)findViewById(R.id.stir_button);
 		startBtn.setId(0);startBtn.setOnClickListener(this);
 		stopBtn.setId(1);stopBtn.setOnClickListener(this);
 		elevBtn.setId(2);elevBtn.setOnClickListener(this);
 		walkBtn.setId(3);walkBtn.setOnClickListener(this);
+		stairBtn.setId(4);stairBtn.setOnClickListener(this);
 		
 		//SurfaceView
 		FrameLayout nakedLog = (FrameLayout)findViewById(R.id.LogSurface);
@@ -101,6 +104,11 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		case 3:
 			Log.e("File kakikomi","1");
 			new LogToData(this).execute();
+			break;
+		case 4:
+			Log.e("activity kidou","hummmmm");
+	    	Intent intent = new Intent(NNCloudActivity.this, StateLogListActivity.class);
+			startActivity(intent);
 			break;
 		}
 	}

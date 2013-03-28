@@ -16,9 +16,9 @@ public class StateInference {//状態推定
 	Context mContext;
 	public static final String MILEAGE_POINT = "MILAGE_POINT";
 	public float mile;//みゃいるじゃないよ？
+	public int numSteps;
 	// 推定変数
 	public StateLog stateLog;
-	public int numSteps;
 	private boolean inElevator;
 
 	// スレッド三回回ってわんわん
@@ -31,7 +31,8 @@ public class StateInference {//状態推定
 	public static final long	TIME_LENGTH_DEFAULT					= 5000;//判定する時間、デフォルトは五秒間分の値を使う
 	public static final String	TIME_DIFFERENCE_THRESHOLD			= "TIME_DIFFERENCE_THRESHOLD";
 	public static final long	TIME_DIFFERENCE_THRESHOLD_DEFAULT	= 1000;//msec、加速度と角度のセンサの時間が離れすぎてないことを祈る、祈ってたらこいつ必要ないことに気づいた
-	public static final String	WALK_COUNT							= "WALK_COUNT";//万歩計ってPedometerだったり、歩数だとNumber of stepだったり。うーむ walk countってだめ？
+	public static final String	NUMBER_OF_STEPS						= "NUMBER_OF_STEPS";
+	public static final String	WALK_COUNT							= "WALK_COUNT";//万歩計ってPedometerだったり、歩数だとNumber of stepsだったり。うーむ walk countってだめ？
 	public static final String	WALK_COUNT_THRESHOLD 				= "WALK_COUNT_THRESHOLD";
 	public static final float	WALK_COUNT_THRESHOLD_DEFAULT 		= 5.4F;//加速度
 	public static final String	WALK_THRESHOLD 						= "WALK_THRESHOLD";
@@ -60,6 +61,7 @@ public class StateInference {//状態推定
 		mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		mile = sp.getFloat(MILEAGE_POINT, 0);
+		numSteps = sp.getInt(NUMBER_OF_STEPS, 0);
 
 		// センサー設定
 		stateLog = new StateLog(StateLog.STATE_STOP);
@@ -68,6 +70,7 @@ public class StateInference {//状態推定
 
 	public void stop() {
 		sp.edit().putFloat(MILEAGE_POINT, mile).commit();
+		sp.edit().putFloat(NUMBER_OF_STEPS, numSteps).commit();
 	}
 
 	public void inference(List<SensorData> acceles, List<SensorData> orientations) {//インファレンスですの

@@ -183,7 +183,7 @@ public class LearningDBManager {
 	}
 
 	//とりあえずデータとって、ハッシュで種類に分けて格納して渡せばいいかなーと思ったけどセンサごとに個別に設定できるのはみりょくてきだったー
-	//ってことでお蔵入り
+	//ってことでお蔵入り。一回のクエリで取得できるのは魅力的なのでそのうち書くかなー
 	/*
 	public static HashMap<String, ArrayList<SensorData>> getSensorData(Context context, long time) {
 		LearningDBHelper helper = LearninggetInstance(context);
