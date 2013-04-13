@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
 
     <ImageView
-        android:id="@+id/imageView1"
+        android:id="@+id/stateItemImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -12,23 +12,23 @@
         android:src="@drawable/stop" />
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/stateItemText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/imageView1"
+        android:layout_toRightOf="@+id/stateItemImage"
         android:text="Stop"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/stateItemTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageView1"
-        android:layout_alignLeft="@+id/textView1"
+        android:layout_alignBottom="@+id/stateItemImage"
+        android:layout_alignLeft="@+id/stateItemText"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/textView1"
+        android:layout_below="@+id/stateItemText"
         android:text="19:02"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 

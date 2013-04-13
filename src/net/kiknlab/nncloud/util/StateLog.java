@@ -1,10 +1,13 @@
 package net.kiknlab.nncloud.util;
 
+import net.kiknlab.nncloud.R;
+
 public class StateLog {
 	public static final int		STATE_STOP			= 0;
 	public static final int		STATE_WALK			= 1;
 	public static final int		STATE_STAIR			= 2;
 	public static final int		STATE_ELEVATOR		= 3;
+	public static final int		NUMBER_OF_STATE		= 4;
 	public static final String	STATE_NAME_STOP		= "stop";
 	public static final String	STATE_NAME_WALK		= "walk";
 	public static final String	STATE_NAME_STAIR	= "stair";
@@ -58,5 +61,20 @@ public class StateLog {
 	public void setElevator(long timestamp){
 		this.state = StateLog.STATE_ELEVATOR;
 		this.timestamp = timestamp;
+	}
+
+	public static int getStateIcon(int state) {
+		switch(state){
+		case STATE_STOP:
+			return R.drawable.stop;
+		case STATE_WALK:
+			return R.drawable.walk;
+		case STATE_STAIR:
+			return R.drawable.stair;
+		case STATE_ELEVATOR:
+			return R.drawable.ele;
+		default:
+			return R.drawable.stop;
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package net.kiknlab.nncloud.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -10,6 +11,7 @@ import net.kiknlab.nncloud.db.StateLogDBManager;
 import net.kiknlab.nncloud.sensor.SensorAdmin;
 import net.kiknlab.nncloud.sensor.StateInference;
 import net.kiknlab.nncloud.util.SensorData;
+import net.kiknlab.nncloud.util.StateLog;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -30,7 +32,12 @@ public class FlyToTheCloud extends Service{
 	Timer mSendServerTimer = new Timer();
 	private float sendMile;
 	final int INFERENCE_THREAD_INTERVAL = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
+	final int NUMBER_OF_VOTE = (int)(60 * 1000)/INFERENCE_THREAD_INTERVAL;//ここで指定された時間の中で最も多い状態が採用される
+	final int VOTE_STATE_T = 5/2;
 	Timer mInferenceTimer = new Timer();
+	ArrayList<Integer> voteState;//各投票数が状態(整数)ごとに入ってる
+	ArrayList<Integer> stateList;//投票履歴
+	int topState;
 
 	@Override
 	public void onCreate() {
@@ -43,17 +50,39 @@ public class FlyToTheCloud extends Service{
 		sp = PreferenceManager.getDefaultSharedPreferences(getApplication());
 		sendMile = sp.getFloat(SEND_MILES, mState.mile);
 
+		stateList = new ArrayList<Integer>();
+		voteState = new ArrayList<Integer>();
+		for(int i = 0;i < StateLog.NUMBER_OF_STATE;i++){voteState.add(0);}
+		for(int i = 0;i < NUMBER_OF_VOTE;i++){stateList.add(StateLog.STATE_STOP);}
+		voteState.set(StateLog.STATE_STOP, NUMBER_OF_VOTE);
+		topState = StateLog.STATE_STOP;
 		mInferenceTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				long time = java.lang.System.currentTimeMillis()
 						- sp.getLong(StateInference.TIME_LENGTH, StateInference.TIME_LENGTH_DEFAULT);
 				if(mSensor.removeAllOldSensorDatas(time)){
-					Log.e("a",time + "");
+					//可能性を推定します
+					try{
+						Log.e("","" + mSensor.accelerometerDatas.get(0).values[1]);
+						Log.e("","" + mSensor.accelerometerDatas.get(10).values[1]);
+					} catch ( Exception e){
+
+					}
 					mState.inference(
 							(List<SensorData>)mSensor.accelerometerDatas.clone(),
 							(List<SensorData>)mSensor.orientationDatas.clone());
-					StateLogDBManager.insertSensorData(getApplication(), mState.stateLog);
+					//推定した結果をもとに投票開始！
+					voteState.set(mState.stateLog.state, voteState.get(mState.stateLog.state) + 1);
+					voteState.set(stateList.get(0), voteState.get(stateList.get(0)) - 1);
+					stateList.add(mState.stateLog.state);
+					stateList.remove(0);
+					Log.e("votes", "" + voteState.get(topState));
+					if(voteState.get(topState) < voteState.get(mState.stateLog.state)){
+						Log.e("change", "state:" + mState.stateLog.state);
+						topState = mState.stateLog.state;
+						StateLogDBManager.insertSensorData(getApplication(), mState.stateLog);
+					}
 				}
 			}
 		}, 0, INFERENCE_THREAD_INTERVAL);

@@ -70,7 +70,7 @@ public class StateInference {//状態推定
 
 	public void stop() {
 		sp.edit().putFloat(MILEAGE_POINT, mile).commit();
-		sp.edit().putFloat(NUMBER_OF_STEPS, numSteps).commit();
+		sp.edit().putInt(NUMBER_OF_STEPS, numSteps).commit();
 	}
 
 	public void inference(List<SensorData> acceles, List<SensorData> orientations) {//インファレンスですの
@@ -90,14 +90,13 @@ public class StateInference {//状態推定
 		Log.e("データ数","[Accele:"+acceles.size()+"]");
 		Log.e("データ数","[Orient:"+orientations.size()+"]");
 		if(acceles.size() <= sp.getInt(ELEVATOR_DIFFERENT_INTERVAL, ELEVATOR_DIFFERENT_INTERVAL_DEFAULT) || orientations.size() <= 0)	return;//値がなければ計算できませんよ
-		Log.e("遅い","3");
 		//平均とか分散とか垂直加速度とか歩数とか
+		for(int i = 0; i < acceles.size();i++){
+			//Log.e("accele","" + acceles.get(i).values[1]);
+		}
 		ArrayList<Float> verticalAcceles = calcVerticalAcceleration(acceles, orientations);
-		Log.e("遅い","4");
 		int walkCount = countWalk(verticalAcceles);
-		Log.e("遅い","5");
 		this.numSteps += walkCount;
-		Log.e("遅い","6");
 		
 		judge(walkCount, acceles, orientations, verticalAcceles);
 	}
@@ -115,18 +114,14 @@ public class StateInference {//状態推定
 			else	stateLog.setWalk(acceles.get(acceles.size() - 1).timestamp);
 		}
 		else{
-			Log.e("遅い","7");
 			if(judgeElevator(verticalAcceles, acceles, inElevator)){
-				Log.e("遅い","8");
 				inElevator = true;// エレベータ内である
 				mile += POWER_USING_ELEVATOR;
 				stateLog.setElevator(acceles.get(acceles.size() - 1).timestamp);
-				Log.e("遅い","9");
 			} else {
 				stateLog.setStop(acceles.get(acceles.size() - 1).timestamp);
 			}
 		}
-		Log.e("遅い","10");
 	}
 
 	public boolean judgeWalk(int walkCount) {
@@ -212,9 +207,11 @@ public class StateInference {//状態推定
 
 		//加速度の増加減少の勢いを見て、閾値を超えた場合一歩とカウントする
 		for(float accele : verticalAcceles){
+			//Log.e("歩数","ACCE:" + accele);
 			if (upWalk) {//加速度が上昇時にHighを更新、下降時にLowを更新して下降判定に移る
 				if (acceleHigh <= accele) acceleHigh = accele;
 				else {
+					//Log.e("歩数","HIGH:" + (acceleHigh - acceleLow));
 					if (acceleHigh - acceleLow > sp.getFloat(WALK_COUNT_THRESHOLD, WALK_COUNT_THRESHOLD_DEFAULT))	walkCount++;
 					acceleLow = accele;
 					upWalk = false;
@@ -222,6 +219,7 @@ public class StateInference {//状態推定
 			} else {// 下降時も似た感じで
 				if (acceleLow >= accele) acceleLow = accele;
 				else {
+					//Log.e("歩数","LOW :" + (acceleHigh - acceleLow));
 					if (acceleHigh - acceleLow > sp.getFloat(WALK_COUNT_THRESHOLD, WALK_COUNT_THRESHOLD_DEFAULT))	walkCount++;
 					acceleHigh = accele;
 					upWalk = true;

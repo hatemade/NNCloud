@@ -11,7 +11,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 
 public class SensorAdmin implements SensorEventListener{
 	public final static int TYPE_ORIENTATION_MAKE = 3;//orientationがdeprecatedなので自分で定義
@@ -40,12 +39,12 @@ public class SensorAdmin implements SensorEventListener{
 	//設定！動的に変更可能にしたい（希望声）
 	private int sensorSpeed;
 	//保存する？
-	private Context mContext;
+	//private Context mContext;
 	//private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！ 追記:いらなかった
 	//public static final int TransactionPeriod = 800;
 
 	public SensorAdmin(Object sensorService, Context context) {
-		mContext = context;
+		//mContext = context;
 
 		//センサスピードの定義、オプションで選べてもいいけど、インターネットから最新の最適な値を取得してもいい、してみたい
 		//よくよく見てみたら、ディレイの速さintで設定できるのかmicrosecかー、ん？まいくろ？
@@ -103,6 +102,7 @@ public class SensorAdmin implements SensorEventListener{
 		switch(event.sensor.getType()){
 		case Sensor.TYPE_ACCELEROMETER:
 			accelerometerDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
+			//Log.e("values2", "" + accelerometerDatas.get(0).values[1]);//accelerometerDatas.size() - 1).values[1]);
 			accelerometerValues = event.values;
 			orientationAccuracy = event.accuracy;
 			IsAccele = true;
@@ -155,10 +155,10 @@ public class SensorAdmin implements SensorEventListener{
 		for(int i = index;i >= 0;i--){
 			Datas.remove(i);
 		}
-	}	
+	}
 
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
-		Log.e("SensorAdmin","Accuracy Change!!!");
+		//Log.e("SensorAdmin","Accuracy Change!!!");
 	}
 }
