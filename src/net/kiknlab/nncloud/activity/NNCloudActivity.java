@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -88,11 +89,14 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 			Log.e("fight", "1 kita!");
 			mServiceManager.doStartService();
 			Log.e("fight", "1 owata! dekita:"+mServiceManager.getTest());
+			view.setId(1);
 			break;
 		case 1:
 			Log.e("fight", "2 kita!");
 			mServiceManager.doStopService();
 			Log.e("fight", "2 owata!");
+			LinearLayout a = (LinearLayout)view;
+			view.setId(0);
 			break;
 		case 2:
 			//SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
