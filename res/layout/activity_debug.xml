@@ -45,7 +45,7 @@
             android:src="@drawable/stair" />
 
         <ImageView
-            android:id="@+id/MainBar"
+            android:id="@+id/elev_button"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:layout_marginLeft="10dip"

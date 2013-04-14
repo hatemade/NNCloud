@@ -31,7 +31,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		//É{É^Éìê›íË
 		Button startBtn = (Button) findViewById(R.id.start);
 		Button stopBtn = (Button) findViewById(R.id.stop);
-		ImageView elevBtn = (ImageView)findViewById(R.id.MainBar);
+		ImageView elevBtn = (ImageView)findViewById(R.id.elev_button);
 		ImageView walkBtn = (ImageView)findViewById(R.id.walk_button);
 		ImageView stairBtn = (ImageView)findViewById(R.id.stir_button);
 		startBtn.setId(0);startBtn.setOnClickListener(this);

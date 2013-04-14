@@ -45,7 +45,7 @@
             android:src="@drawable/stair" />
 
         <ImageView
-            android:id="@+id/MainBar"
+            android:id="@+id/elev_button"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:layout_marginLeft="10dip"
@@ -75,7 +75,7 @@
     </FrameLayout>
 
     <LinearLayout
-        android:id="@id/MainBar"
+        android:id="@id/elev_button"
         android:layout_width="wrap_content"
         android:layout_height="60dp"
         android:layout_alignParentLeft="true"
@@ -87,6 +87,9 @@
             android:id="@+id/imageView1"
             android:layout_width="60dp"
             android:layout_height="match_parent"
+            android:paddingBottom="5dp"
+            android:paddingLeft="5dp"
+            android:paddingTop="5dp"
             android:src="@drawable/ic_start" />
 
         <TextView
