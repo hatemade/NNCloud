@@ -26,12 +26,14 @@ public class DBHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(LearningDBManager.CREATE_TABLE_SQL);
 		db.execSQL(StateLogDBManager.CREATE_TABLE_SQL);
+		db.execSQL(LocationLogDBManager.CREATE_TABLE_SQL);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL(LearningDBManager.DROP_TABLE_SQL);
 		db.execSQL(StateLogDBManager.DROP_TABLE_SQL);
+		db.execSQL(LocationLogDBManager.DROP_TABLE_SQL);
 		onCreate(db);
 	}
 }

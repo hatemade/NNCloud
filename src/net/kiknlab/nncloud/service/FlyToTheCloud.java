@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import net.kiknlab.nncloud.cloud.CloudManager;
 import net.kiknlab.nncloud.cloud.SendMileServerTask;
 import net.kiknlab.nncloud.db.StateLogDBManager;
+import net.kiknlab.nncloud.sensor.GPSSensor;
 import net.kiknlab.nncloud.sensor.SensorAdmin;
 import net.kiknlab.nncloud.sensor.StateInference;
 import net.kiknlab.nncloud.util.SensorData;
@@ -26,6 +27,8 @@ public class FlyToTheCloud extends Service{
 	private SharedPreferences sp;
 	private SensorAdmin mSensor;
 	private StateInference mState;
+	//2013-04-14 by Pocket7878
+	private GPSSensor gps;
 	//推定スレッドとマイル送信スレッド
 	private final static int SEND_SERVER_THREAD_INTERVAL = 1000 * 60 * 60 * 1;
 	public final static String SEND_MILES = "SEND_MILES";
@@ -56,6 +59,11 @@ public class FlyToTheCloud extends Service{
 		for(int i = 0;i < NUMBER_OF_VOTE;i++){stateList.add(StateLog.STATE_STOP);}
 		voteState.set(StateLog.STATE_STOP, NUMBER_OF_VOTE);
 		topState = StateLog.STATE_STOP;
+		
+		//2013-04-14 by Pocket7878
+		gps = new GPSSensor(getApplication());
+		gps.start();
+		
 		mInferenceTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -125,6 +133,7 @@ public class FlyToTheCloud extends Service{
 		// 解放せよ！われわれに働く気はない！負けだと思う！
 		mState.stop();
 		mSensor.stop();
+		gps.stop();
 		mInferenceTimer.cancel();
 		mInferenceTimer = null;
 		mSendServerTimer.cancel();
