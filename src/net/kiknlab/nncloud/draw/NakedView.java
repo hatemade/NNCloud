@@ -28,7 +28,7 @@ public class NakedView extends SurfaceView implements SurfaceHolder.Callback{
 		mThread = thread;
 	}
 
-	public void onDraw(String text){
+	public void draw(String text){
 		canvas = holder.lockCanvas();
 		canvas.save();
 		canvas.drawColor(Color.WHITE);
