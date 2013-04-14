@@ -62,42 +62,62 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:padding="10dip" >
+
+        <ImageView
+            android:id="@+id/stop_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="10dip"
+            android:layout_marginRight="10dip"
+            android:layout_weight="1"
+            android:src="@drawable/stop" />
+
+        <ImageView
+            android:id="@+id/walk_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="20dip"
+            android:layout_marginRight="10dip"
+            android:layout_weight="1"
+            android:src="@drawable/walk" />
+
+        <ImageView
+            android:id="@+id/train_button"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_weight="1"
+            android:src="@drawable/train" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/StateButton1"
+        android:layout_alignParentLeft="true"
+        android:text="Server State:"
+        android:textSize="48px" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView1"
+        android:layout_alignBottom="@+id/textView1"
+        android:layout_toRightOf="@+id/textView1"
+        android:text="OFFLINE"
+        android:textSize="48px" />
 
     <FrameLayout
         android:id="@+id/LogSurface"
         android:layout_width="fill_parent"
         android:layout_height="120dip"
-        android:layout_above="@+id/StateButton1"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" >
-
-    </FrameLayout>
-
-    <LinearLayout
-        android:id="@id/MainBar"
-        android:layout_width="wrap_content"
-        android:layout_height="60dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:background="@android:color/black" >
+        android:layout_alignParentTop="true" >
 
-        <ImageView
-            android:id="@+id/imageView1"
-            android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_start" />
-
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_margin="4dp"
-            android:gravity="center_vertical"
-            android:text="START"
-            android:textColor="@android:color/primary_text_dark"
-            android:textSize="50sp" />
-    </LinearLayout>
+    </FrameLayout>
 
 </RelativeLayout>

@@ -20,50 +20,51 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 	private ServiceManagerForActivity mServiceManager;
 	private NakedView nakedView;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_nncloud);
-        
-        //Serviceをプロデュースするマネージャを雇います
-        mServiceManager = new ServiceManagerForActivity(this);
-        
-        //ボタン設定
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_nncloud);
+
+		//Serviceをプロデュースするマネージャを雇います
+		mServiceManager = new ServiceManagerForActivity(this);
+
+		//ボタン設定
 		Button startBtn = (Button) findViewById(R.id.start);
 		Button stopBtn = (Button) findViewById(R.id.stop);
-		ImageView elevBtn = (ImageView)findViewById(R.id.elev_button);
+		ImageView elevBtn = (ImageView)findViewById(R.id.MainBar);
 		ImageView walkBtn = (ImageView)findViewById(R.id.walk_button);
 		ImageView stairBtn = (ImageView)findViewById(R.id.stir_button);
 		startBtn.setId(0);startBtn.setOnClickListener(this);
 		stopBtn.setId(1);stopBtn.setOnClickListener(this);
 		elevBtn.setId(2);elevBtn.setOnClickListener(this);
-		walkBtn.setId(3);walkBtn.setOnClickListener(this);
-		stairBtn.setId(4);stairBtn.setOnClickListener(this);
-		
+		//walkBtn.setId(3);walkBtn.setOnClickListener(this);
+		//stairBtn.setId(4);stairBtn.setOnClickListener(this);
+
 		//SurfaceView
 		FrameLayout nakedLog = (FrameLayout)findViewById(R.id.LogSurface);
 		nakedView = new NakedView(this, new Thread(this));
 		nakedLog.addView(nakedView);
-		
+
 		//LearningDBManager.getAllSensorData(getApplicationContext());
-    }
-    
-    @Override
-    public void onStart(){
-    	super.onStart();
 	}
-    
-    @Override
-    public void onResume(){
-    	super.onResume();
-    	nakedView.mThread = null;
-    	nakedView.mThread = new Thread(this);
-    }
+
+	@Override
+	public void onStart(){
+		super.onStart();
+	}
+
+	@Override
+	public void onResume(){
+		super.onResume();
+		nakedView.mThread = null;
+		nakedView.mThread = new Thread(this);
+	}
 
 	@Override
 	public void run() {
 		while(nakedView.mThread!=null) {
-			nakedView.onDraw(mServiceManager.getTest());
+			nakedView.onDraw(
+					mServiceManager.getTest());
 			//Log.e("serviceTest", mServiceManager.getTest());
 			try {
 				Thread.sleep(250);
@@ -71,13 +72,13 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 			}
 		}
 	}
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        return true;
-    }
 
-    @Override
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		return true;
+	}
+
+	@Override
 	public void onClick(View view) {
 		switch(view.getId()){
 		case 0:
@@ -107,12 +108,12 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 			break;
 		case 4:
 			Log.e("activity kidou","hummmmm");
-	    	Intent intent = new Intent(NNCloudActivity.this, StateLogListActivity.class);
+			Intent intent = new Intent(NNCloudActivity.this, StateLogListActivity.class);
 			startActivity(intent);
 			break;
 		}
 	}
-	
+
 	@Override
 	protected void onDestroy(){
 		super.onDestroy();
