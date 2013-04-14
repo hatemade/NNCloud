@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public class NNCloudActivity extends Activity implements View.OnClickListener, Runnable{
 	private ServiceManagerForActivity mServiceManager;
@@ -29,7 +30,9 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		mServiceManager = new ServiceManagerForActivity(this);
 
 		//É{É^Éìê›íË
-		Button startBtn = (Button) findViewById(R.id.start);
+		//TextView startTxt = (TextView) findViewById(R.id.StartServiceText);
+		//ImageView startIcn = (ImageView) findViewById(R.id.StartServiceIcon);
+		View startBtn = findViewById(R.id.StartServiceButton);
 		Button stopBtn = (Button) findViewById(R.id.stop);
 		ImageView elevBtn = (ImageView)findViewById(R.id.elev_button);
 		ImageView walkBtn = (ImageView)findViewById(R.id.walk_button);
@@ -38,7 +41,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		stopBtn.setId(1);stopBtn.setOnClickListener(this);
 		elevBtn.setId(2);elevBtn.setOnClickListener(this);
 		//walkBtn.setId(3);walkBtn.setOnClickListener(this);
-		//stairBtn.setId(4);stairBtn.setOnClickListener(this);
+		stairBtn.setId(4);stairBtn.setOnClickListener(this);
 
 		//SurfaceView
 		FrameLayout nakedLog = (FrameLayout)findViewById(R.id.LogSurface);
@@ -63,7 +66,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 	@Override
 	public void run() {
 		while(nakedView.mThread!=null) {
-			nakedView.onDraw(
+			nakedView.draw(
 					mServiceManager.getTest());
 			//Log.e("serviceTest", mServiceManager.getTest());
 			try {

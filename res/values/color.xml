@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="app_dark">#000020</color>
+    <color name="pressed_back_color">#0060a0</color>
     
 </resources>
