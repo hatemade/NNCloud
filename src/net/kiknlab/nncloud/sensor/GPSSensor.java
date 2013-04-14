@@ -35,6 +35,7 @@ public class GPSSensor implements LocationListener{
 
 	@Override
 	public void onLocationChanged(Location arg0) {
+		Log.e("d", arg0.getLatitude() + "," + arg0.getLongitude());
 		LocationLog log = new LocationLog(arg0.getLatitude(), arg0.getLongitude(),
 				java.lang.System.currentTimeMillis());
 		LocationLogDBManager.insertSensorData(mContext, log);
