@@ -25,7 +25,12 @@ public class GPSSensor implements LocationListener{
 		 
 		 //TODO GPS or Network‚ğ”»’f‚·‚é
 		 // ˆÊ’uî•ñ‚ÌXV‚ğó‚¯æ‚é‚æ‚¤‚Éİ’è
-		 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_DURATION, 0, this);
+		 if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+			 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_DURATION, 0, this);
+		 } else {
+			 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_DURATION, 0, this);
+		 }
+		 
 	}
 	
 	public void stop() {
