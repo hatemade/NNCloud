@@ -75,7 +75,7 @@
     </FrameLayout>
 
     <LinearLayout
-        android:id="@id/elev_button"
+        android:id="@id/AppBar"
         android:layout_width="wrap_content"
         android:layout_height="60dp"
         android:layout_alignParentLeft="true"
@@ -87,9 +87,9 @@
             android:id="@+id/imageView1"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:paddingBottom="5dp"
-            android:paddingLeft="5dp"
-            android:paddingTop="5dp"
+            android:paddingBottom="6dp"
+            android:paddingLeft="2dp"
+            android:paddingTop="6dp"
             android:src="@drawable/ic_start" />
 
         <TextView
@@ -100,7 +100,8 @@
             android:gravity="center_vertical"
             android:text="START"
             android:textColor="@android:color/primary_text_dark"
-            android:textSize="50sp" />
+            android:textSize="35dp" />
+
     </LinearLayout>
 
 </RelativeLayout>
