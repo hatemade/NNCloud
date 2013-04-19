@@ -18,8 +18,6 @@ import android.util.Log;
 public class StateInference {//状態推定
 	SharedPreferences sp;
 	Context mContext;
-	public static final String MILEAGE_POINT = "MILAGE_POINT";
-	public float mile;//みゃいるじゃないよ？
 	public int numSteps;
 	// 推定変数
 	public StateLog stateLog;
@@ -59,8 +57,6 @@ public class StateInference {//状態推定
 	public static final boolean	ELEVATOR_USE_IN_DEFAULT				= true;//判定時間が短い場合エレベータの開始と終了を同時に取得できないため、現在エレベータの中にいるかどうかを判定する
 	public static final String	ELEVATOR_FEATURE_TIMES				= "ELEVATOR_FEATURE_TIMES";
 	public static final int		ELEVATOR_FEATURE_TIMES_DEFAULT		= 1;//何回エレベータの特徴を抽出できたか
-	public static final float	POWER_SAVING_STAIR					= 0.74f;//階段利用時の節電量。単位は…？なんだっけ?ワット?
-	public static final float	POWER_USING_ELEVATOR				= -3.33f;//エレベータ利用時の消費電力
 
 	public StateInference(Context context) {
 		// ⊂(^ω^ )二二⊃こいつぁ間に合いそうにないお 2013/03/10
@@ -70,7 +66,6 @@ public class StateInference {//状態推定
 		// ⊂(｀・ω・´)二二⊃むりだったお 2013/03/25
 		mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		mile = sp.getFloat(MILEAGE_POINT, 0);
 		numSteps = sp.getInt(NUMBER_OF_STEPS, 0);
 
 		// センサー設定
@@ -96,7 +91,6 @@ public class StateInference {//状態推定
 	}
 
 	public void stop() {
-		sp.edit().putFloat(MILEAGE_POINT, mile).commit();
 		sp.edit().putInt(NUMBER_OF_STEPS, numSteps).commit();
 	}
 
@@ -130,14 +124,13 @@ public class StateInference {//状態推定
 
 	public void judge(int walkCount, List<SensorData> acceles, List<SensorData> orientations, ArrayList<Float> verticalAcceles){//ジャッジメントですの
 		//判定するよー！
-		// 歩行かそうでないかを判定した後、歩行の場合階段かどうか、歩行でないばあいエレベータの判定を行う
+		//歩行かそうでないかを判定した後、歩行の場合階段かどうか、歩行でないばあいエレベータの判定を行う
 		debugLog = walkCount + ",";
 		if(judgeWalk(walkCount)){
 			inElevator = false;// エレベータ内では歩かないようお願い申し上げます
 			float[] orientationXZVariance = calcOrientationXZVariance(orientations);
 			debugLog +=  orientationXZVariance[0]+ "," + orientationXZVariance[1] + ",";
 			if(judgeStair(orientationXZVariance[0], orientationXZVariance[1])){
-				mile += POWER_SAVING_STAIR;//あとで増える量を経過時間をみて変わるように調整する
 				stateLog.setStair(acceles.get(acceles.size() - 1).timestamp);
 				debugLog += ",,,,,,stair";
 			}
@@ -150,7 +143,6 @@ public class StateInference {//状態推定
 			debugLog +=  ",," + inElevator;
 			if(judgeElevator(verticalAcceles, acceles, inElevator)){
 				inElevator = true;// エレベータ内である
-				mile += POWER_USING_ELEVATOR;
 				stateLog.setElevator(acceles.get(acceles.size() - 1).timestamp);
 				debugLog += ",elevator";
 			} else {

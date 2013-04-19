@@ -16,18 +16,23 @@ import net.kiknlab.nncloud.sensor.SensorAdmin;
 import net.kiknlab.nncloud.sensor.StateInference;
 import net.kiknlab.nncloud.util.SensorData;
 import net.kiknlab.nncloud.util.StateLog;
+import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 public class FlyToTheCloud extends Service{
@@ -40,15 +45,20 @@ public class FlyToTheCloud extends Service{
 	//推定スレッドとマイル送信スレッド
 	private final static int SEND_SERVER_THREAD_INTERVAL = 1000 * 60 * 60 * 1;
 	public final static String SEND_MILES = "SEND_MILES";
-	Timer mSendServerTimer = new Timer();
+	private Timer mSendServerTimer = new Timer();
 	private float sendMile;
-	final int INFERENCE_THREAD_INTERVAL = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
-	final int NUMBER_OF_VOTE = (int)(60 * 1000)/INFERENCE_THREAD_INTERVAL;//ここで指定された時間の中で最も多い状態が採用される
-	final int VOTE_STATE_T = 5/2;
-	Timer mInferenceTimer = new Timer();
-	ArrayList<Integer> voteState;//各投票数が状態(整数)ごとに入ってる
-	ArrayList<Integer> stateList;//投票履歴
-	int topState;
+	public float mile;//みゃいるじゃないよ？
+	public static final float	POWER_SAVING_STAIR = 0.74f;//階段利用時の節電量。単位は…？なんだっけ?ワット?
+	public static final float	POWER_USING_ELEVATOR = -3.33f;//エレベータ利用時の消費電力
+	public static final String MILEAGE_POINT = "MILAGE_POINT";
+	public final int INFERENCE_THREAD_INTERVAL = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
+	private Timer mInferenceTimer = new Timer();
+	public final int NUMBER_OF_VOTE = (int)(5 * 1000)/INFERENCE_THREAD_INTERVAL;//ここで指定された時間の中で最も多い状態が採用される
+	private ArrayList<Integer> voteState;//各投票数が状態(整数)ごとに入ってる
+	private ArrayList<Integer> stateList;//投票履歴
+	public int topState;
+	public long inferenceTime;
+	public final long ALLOW_DIFFERENT_INFERENCE_TIME = INFERENCE_THREAD_INTERVAL/2;//推定の間隔五秒からどこまでのずれを許容するか
 
 	@Override
 	public void onCreate() {
@@ -59,7 +69,7 @@ public class FlyToTheCloud extends Service{
 		mSensor.resume();
 		mState = new StateInference(getApplication());
 		sp = PreferenceManager.getDefaultSharedPreferences(getApplication());
-		sendMile = sp.getFloat(SEND_MILES, mState.mile);
+		sendMile = sp.getFloat(SEND_MILES, mile);
 
 		stateList = new ArrayList<Integer>();
 		voteState = new ArrayList<Integer>();
@@ -73,6 +83,8 @@ public class FlyToTheCloud extends Service{
 		gps = new GPSSensor(getApplication());
 		gps.start();
 
+		mile = sp.getFloat(MILEAGE_POINT, 0);
+		inferenceTime = java.lang.System.currentTimeMillis();
 		mInferenceTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -92,13 +104,31 @@ public class FlyToTheCloud extends Service{
 					voteState.set(stateList.get(0), voteState.get(stateList.get(0)) - 1);
 					stateList.add(mState.stateLog.state);
 					stateList.remove(0);
-					Log.e("votes", "" + voteState.get(topState));
+					Log.e("votes", "stop:" + voteState.get(0));
+					Log.e("votes", "walk:" + voteState.get(1));
+					Log.e("votes", "stai:" + voteState.get(2));
+					Log.e("votes", "elev:" + voteState.get(3));
+					Log.e("votes", "top :" + topState);
 					if(voteState.get(topState) < voteState.get(mState.stateLog.state)){
 						Log.e("change", "state:" + mState.stateLog.state);
 						topState = mState.stateLog.state;
 						StateLogDBManager.insertSensorData(getApplication(), mState.stateLog);
 					}
+					
+					calcMile();
+				}				
+			}
+			public void calcMile(){
+				if(Math.abs(java.lang.System.currentTimeMillis()
+						- inferenceTime - INFERENCE_THREAD_INTERVAL)
+						< ALLOW_DIFFERENT_INFERENCE_TIME){
+					if(mState.stateLog.state == StateLog.STATE_STAIR){
+						mile += POWER_SAVING_STAIR * ((java.lang.System.currentTimeMillis() - inferenceTime) / 1000);
+					} else if(mState.stateLog.state == StateLog.STATE_ELEVATOR){
+						mile += POWER_USING_ELEVATOR * ((java.lang.System.currentTimeMillis() - inferenceTime) / 1000);
+					}
 				}
+				inferenceTime = java.lang.System.currentTimeMillis();
 			}
 		}, 0, INFERENCE_THREAD_INTERVAL);
 		mSendServerTimer.schedule(new TimerTask() {
@@ -108,12 +138,14 @@ public class FlyToTheCloud extends Service{
 				mHandler.post(new Runnable() {
 					public void run(){
 						if(CloudManager.connectServer(getApplication())){
-							new SendMileServerTask(getApplication()).execute(new Float[]{mState.mile, sendMile});
+							new SendMileServerTask(getApplication()).execute(new Float[]{mile, sendMile});
 						}
 					}
 				});
 			}
 		}, 0, SEND_SERVER_THREAD_INTERVAL);
+
+		setNotifycation();
 	}
 
 	public String getTest(){//(σ･∀･)σｹﾞｯﾂ!!
@@ -128,7 +160,7 @@ public class FlyToTheCloud extends Service{
 				//":マイル" + mState.mile;
 				mState.stateLog.state +
 				":" + mState.numSteps +
-				":" + mState.mile;
+				":" + mile;
 	}
 
 	public class FTTCBinder extends Binder {
@@ -146,6 +178,7 @@ public class FlyToTheCloud extends Service{
 	public void onDestroy() {
 		super.onDestroy();
 		// 解放せよ！われわれに働く気はない！負けだと思う！
+		sp.edit().putFloat(MILEAGE_POINT, mile).commit();
 		mState.stop();
 		mSensor.stop();
 		gps.stop();
@@ -154,29 +187,28 @@ public class FlyToTheCloud extends Service{
 		mSendServerTimer.cancel();
 		mSendServerTimer = null;
 		StateLogDBManager.insertSensorData(getApplication(), new StateLog(StateLog.STATE_LOG_STOPPED, java.lang.System.currentTimeMillis()));
+		cancelNotifycation();
 		// 解放されました、今日から無職です、メモリはフリーターみたいな、フリーな領域みたいな
 	}
 
-	private void setNotifyCation(){
-		//Notificationインスタンスの生成と設定
-		Notification notify = new Notification();
-		notify.icon = R.drawable.walking;
-		notify.tickerText = "ティッカーテキスト";
-		notify.number = 2;
-		try{
-			SimpleDateFormat date = new SimpleDateFormat("yy/mm/dd HH:mm");
-			notify.when = date.parse("2010/5/20").getTime();
-		}catch(Exception e){
-			notify.when = System.currentTimeMillis();
-		}
-
+	private void setNotifycation(){
 		Intent i = new Intent(getApplicationContext(), NNCloudActivity.class);
 		PendingIntent pend = PendingIntent.getActivity(this, 0, i, 0);
-		//notify.;
-		//.setLatestEventInfo(getApplicationContext(), "", "", pend);
-		//	.setLatestEventInfo(getApplicationContext(), "タイトル", "テキスト", setIntent() );
+
+		Notification notify = new NotificationCompat.Builder(this)
+		.setContentTitle("Title")
+		.setContentText("subject")
+		.setSmallIcon(R.drawable.walk)
+		.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.walking))
+		.setContentIntent(pend)
+		.build();
 
 		NotificationManager mManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 		mManager.notify(1, notify);
+	}
+
+	private void cancelNotifycation(){
+		NotificationManager notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		notifyManager.cancel(1);
 	}
 }

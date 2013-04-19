@@ -3,6 +3,7 @@ package net.kiknlab.nncloud.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 	//êÌèpÇÕëäéËÇ∆ÇÃêÌóÕç∑Çï¢Ç∑
@@ -13,6 +14,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	private DBHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		Log.e("DBHelper","Constracter");
 	}
 
 	public static synchronized DBHelper getInstance(Context context) {
@@ -24,6 +26,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+		Log.e("DBHelper","onCreate");
 		db.execSQL(LearningDBManager.CREATE_TABLE_SQL);
 		db.execSQL(StateLogDBManager.CREATE_TABLE_SQL);
 		db.execSQL(LocationLogDBManager.CREATE_TABLE_SQL);
@@ -31,6 +34,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		Log.e("DBHelper","onUpgrade");
 		db.execSQL(LearningDBManager.DROP_TABLE_SQL);
 		db.execSQL(StateLogDBManager.DROP_TABLE_SQL);
 		db.execSQL(LocationLogDBManager.DROP_TABLE_SQL);

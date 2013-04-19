@@ -60,17 +60,16 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		appStateStep = (TextView)findViewById(R.id.AppStateStep);
 		appStateMile = (TextView)findViewById(R.id.AppStateMile);
 		appStateIcon = (ImageView)findViewById(R.id.AppStateIcon);
-
-		MyPagerAdapter mPagerAdapter;
-		ViewPager mViewPager;
-		mPagerAdapter = new MyPagerAdapter(this);
-		mViewPager = (ViewPager) findViewById(R.id.stateListPager);
-		mViewPager.setAdapter(mPagerAdapter);
 	}
 
 	@Override
 	public void onStart(){
 		super.onStart();
+		MyPagerAdapter mPagerAdapter;
+		ViewPager mViewPager;
+		mPagerAdapter = new MyPagerAdapter(this);
+		mViewPager = (ViewPager) findViewById(R.id.stateListPager);
+		mViewPager.setAdapter(mPagerAdapter);
 	}
 
 	@Override
