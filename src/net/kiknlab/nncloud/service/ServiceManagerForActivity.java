@@ -1,10 +1,15 @@
 package net.kiknlab.nncloud.service;
 
+import java.util.List;
+
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 public class ServiceManagerForActivity {
@@ -21,7 +26,7 @@ public class ServiceManagerForActivity {
 		if(mIsBound)	return mBoundService.getTest();
 		else{
 			if(mBoundService == null)	return "Failed";
-			else	return "Failed"+mBoundService.getTest();
+			else	return mBoundService.getTest();
 		}
 	}
 
@@ -54,7 +59,12 @@ public class ServiceManagerForActivity {
 		// class name because we want a specific service implementation that
 		// we know will be running in our own process (and thus won't be
 		// supporting component replacement by other applications).
-		mContext.bindService(new Intent(mContext.getApplicationContext(), FlyToTheCloud.class), mConnection, Context.BIND_AUTO_CREATE);
+		//mContext.bindService(new Intent(ServiceControllerActivity.this,
+		//		MyService.class), mConnection, Context.BIND_AUTO_CREATE);
+		//mIsBound = true;
+		mContext.bindService(
+				new Intent(mContext.getApplicationContext(), FlyToTheCloud.class),
+				mConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	public void doUnbindService() {
@@ -73,5 +83,19 @@ public class ServiceManagerForActivity {
 	public void doStopService(){
 		this.doUnbindService();
 		mContext.stopService(new Intent(mContext.getApplicationContext(), FlyToTheCloud.class));
+	}
+
+	public boolean isServiceRunning() {
+		ActivityManager activityManager = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
+		List<RunningServiceInfo> services = activityManager.getRunningServices(Integer.MAX_VALUE);
+
+		//Log.e("isService1", FlyToTheCloud.class.getCanonicalName());
+		for (RunningServiceInfo info : services) {
+			//Log.e("isService2", info.service.getClassName());
+			if (FlyToTheCloud.class.getCanonicalName().equals(info.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

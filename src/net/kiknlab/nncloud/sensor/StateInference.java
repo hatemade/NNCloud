@@ -1,5 +1,8 @@
 package net.kiknlab.nncloud.sensor;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +11,7 @@ import net.kiknlab.nncloud.util.StateLog;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -20,6 +24,12 @@ public class StateInference {//状態推定
 	// 推定変数
 	public StateLog stateLog;
 	private boolean inElevator;
+
+	public String debugLog;
+	public boolean fileExist;
+	public int debugId;
+	public static final String FILE_NAME= "inference_log.csv";
+	public static final String FILE_DIRECTORY = "/NNCloud/";
 
 	// スレッド三回回ってわんわん
 	//final int INTERVAL_PERIOD = 20000;// msecかと思ったか，あたりだよ！もう一本！millisecondsです…はい…
@@ -66,6 +76,23 @@ public class StateInference {//状態推定
 		// センサー設定
 		stateLog = new StateLog(StateLog.STATE_STOP);
 		inElevator = false;
+
+		//デバッグログ
+		debugId = 0;
+		debugLog = "";
+		fileExist = true;
+		File file = new File(Environment.getExternalStorageDirectory() + FILE_DIRECTORY);
+		if(!file.exists()){
+			if(!file.mkdir())	fileExist = false;
+		}
+		if(fileExist){
+			file = new File(Environment.getExternalStorageDirectory() + FILE_DIRECTORY + FILE_NAME);
+			if(!file.exists()){
+				try{if(!file.createNewFile())	fileExist = false;}
+				catch(Exception e){}
+			}
+		}
+		Log.e("inferenceFile","file exist" + fileExist);
 	}
 
 	public void stop() {
@@ -86,7 +113,7 @@ public class StateInference {//状態推定
 				mContext, SensorAdmin.TYPE_ORIENTATION_MAKE, time, judgeTime);
 		Log.e("遅い","2");
 		SimpleDateFormat sdf = new SimpleDateFormat("HH':'mm':'ss'.'SSS");
-		*/
+		 */
 		Log.e("データ数","[Accele:"+acceles.size()+"]");
 		Log.e("データ数","[Orient:"+orientations.size()+"]");
 		if(acceles.size() <= sp.getInt(ELEVATOR_DIFFERENT_INTERVAL, ELEVATOR_DIFFERENT_INTERVAL_DEFAULT) || orientations.size() <= 0)	return;//値がなければ計算できませんよ
@@ -97,29 +124,66 @@ public class StateInference {//状態推定
 		ArrayList<Float> verticalAcceles = calcVerticalAcceleration(acceles, orientations);
 		int walkCount = countWalk(verticalAcceles);
 		this.numSteps += walkCount;
-		
+
 		judge(walkCount, acceles, orientations, verticalAcceles);
 	}
-	
+
 	public void judge(int walkCount, List<SensorData> acceles, List<SensorData> orientations, ArrayList<Float> verticalAcceles){//ジャッジメントですの
 		//判定するよー！
 		// 歩行かそうでないかを判定した後、歩行の場合階段かどうか、歩行でないばあいエレベータの判定を行う
+		debugLog = walkCount + ",";
 		if(judgeWalk(walkCount)){
 			inElevator = false;// エレベータ内では歩かないようお願い申し上げます
 			float[] orientationXZVariance = calcOrientationXZVariance(orientations);
+			debugLog +=  orientationXZVariance[0]+ "," + orientationXZVariance[1] + ",";
 			if(judgeStair(orientationXZVariance[0], orientationXZVariance[1])){
 				mile += POWER_SAVING_STAIR;//あとで増える量を経過時間をみて変わるように調整する
 				stateLog.setStair(acceles.get(acceles.size() - 1).timestamp);
+				debugLog += ",,,,,,stair";
 			}
-			else	stateLog.setWalk(acceles.get(acceles.size() - 1).timestamp);
+			else{
+				stateLog.setWalk(acceles.get(acceles.size() - 1).timestamp);
+				debugLog += ",,,,,,walk";
+			}
 		}
 		else{
+			debugLog +=  ",," + inElevator;
 			if(judgeElevator(verticalAcceles, acceles, inElevator)){
 				inElevator = true;// エレベータ内である
 				mile += POWER_USING_ELEVATOR;
 				stateLog.setElevator(acceles.get(acceles.size() - 1).timestamp);
+				debugLog += ",elevator";
 			} else {
 				stateLog.setStop(acceles.get(acceles.size() - 1).timestamp);
+				debugLog += ",stop";
+			}
+		}
+		
+		saveDebugLog(debugLog, debugId);
+		debugLog = "";
+		debugId++;
+	}
+
+	public void saveDebugLog(String logs, int id){
+		logs = id + "," + logs + "\n";
+		if(fileExist){
+			FileOutputStream fos = null;
+
+			try {
+				fos = new FileOutputStream(Environment.getExternalStorageDirectory() +
+						FILE_DIRECTORY +
+						FILE_NAME,true);
+				fos.write(logs.toString().getBytes(), 0, logs.length());
+				fos.flush();
+			}
+			catch (Exception e) {e.printStackTrace();Log.e("inferenceFile","exception1");}
+			finally {
+				try {
+					if( fos != null ){
+						fos.close();
+					}
+				}
+				catch( IOException e ){e.printStackTrace();Log.e("inferenceFile","exception1");}
 			}
 		}
 	}
@@ -156,7 +220,9 @@ public class StateInference {//状態推定
 			else if(differentVerticalAcceleMin > differentVerticalAcceles.get(i - differentInterval))
 				differentVerticalAcceleMin = differentVerticalAcceles.get(i - differentInterval);
 		}
-
+		
+		debugLog += "," + differentVerticalAcceleMax + "," + differentVerticalAcceleMin;
+		
 		// エレベータ判定
 		//まずエレベータが上昇しているのか下降しているのか考える、この判定方式の残念さは、きっと未来の誰かが何とかするさ
 		int featureIndex = 0;//特徴のインデックス
@@ -170,6 +236,7 @@ public class StateInference {//状態推定
 				upElevator = true;
 			}
 		}
+		debugLog += "," + featureIndex + "," + upElevator;
 		for(int i = featureIndex;i < differentVerticalAcceles.size();i++){
 			if(upElevator){
 				if (differentVerticalAcceles.get(i) > differentVerticalAcceleMax * differentRange) {
@@ -192,6 +259,7 @@ public class StateInference {//状態推定
 				}
 			}
 		}
+		debugLog += "," + judgeElevator;
 		if (inElevator && sp.getBoolean(ELEVATOR_USE_IN, ELEVATOR_USE_IN_DEFAULT) ||
 				judgeElevator >= sp.getInt(ELEVATOR_FEATURE_TIMES, ELEVATOR_FEATURE_TIMES_DEFAULT)) {
 			return true;
@@ -234,10 +302,11 @@ public class StateInference {//状態推定
 		float avg1 = 0, avg2 = 0;
 		float variance1 = 0, variance2 = 0;
 		for(SensorData data : datas){
-			avg1 += data.values[1];
-			avg2 += data.values[2];
-			variance1 += data.values[1] * data.values[1];
-			variance2 += data.values[2] * data.values[2];
+			//Log.e("inference","[X:" + Math.toDegrees(data.values[1]) + "]");
+			avg1 += Math.toDegrees(data.values[1]);
+			avg2 += Math.toDegrees(data.values[2]);
+			variance1 += Math.toDegrees(data.values[1]) * Math.toDegrees(data.values[1]);
+			variance2 += Math.toDegrees(data.values[2]) * Math.toDegrees(data.values[2]);
 		}
 		avg1 = avg1 / datas.size();
 		avg2 = avg2 / datas.size();
@@ -270,7 +339,7 @@ public class StateInference {//状態推定
 				orientationIndex++;
 				if(orientationIndex >= (orientation.size() - 1)){
 					if(Math.abs(orientation.get(orientationIndex).timestamp - accele.get(i).timestamp) >
-							Math.abs(orientation.get(orientationIndex-1).timestamp - accele.get(i).timestamp)){
+					Math.abs(orientation.get(orientationIndex-1).timestamp - accele.get(i).timestamp)){
 						orientationIndex--;
 					}
 					checkIndex = false;

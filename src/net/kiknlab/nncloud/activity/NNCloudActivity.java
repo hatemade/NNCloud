@@ -3,16 +3,20 @@ package net.kiknlab.nncloud.activity;
 import net.kiknlab.nncloud.R;
 import net.kiknlab.nncloud.db.LearningDBManager;
 import net.kiknlab.nncloud.db.LogToData;
+import net.kiknlab.nncloud.draw.MyPagerAdapter;
 import net.kiknlab.nncloud.draw.NakedView;
 import net.kiknlab.nncloud.service.ServiceManagerForActivity;
+import net.kiknlab.nncloud.util.StateLog;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Paint;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -20,36 +24,48 @@ import android.widget.TextView;
 
 public class NNCloudActivity extends Activity implements View.OnClickListener, Runnable{
 	private ServiceManagerForActivity mServiceManager;
+	private TextView appStateRunningText;
 	private NakedView nakedView;
+	public Handler handler;
+	private TextView appStateStep;
+	private TextView appStateMile;
+	private ImageView appStateIcon;
+	private boolean issetClickListenerMenubtn;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_nncloud);
 
-		//Serviceをプロデュースするマネージャを雇います
-		mServiceManager = new ServiceManagerForActivity(this);
-
 		//ボタン設定
-		//TextView startTxt = (TextView) findViewById(R.id.StartServiceText);
-		//ImageView startIcn = (ImageView) findViewById(R.id.StartServiceIcon);
-		View startBtn = findViewById(R.id.StartServiceButton);
-		Button stopBtn = (Button) findViewById(R.id.stop);
-		ImageView elevBtn = (ImageView)findViewById(R.id.elev_button);
-		ImageView walkBtn = (ImageView)findViewById(R.id.walk_button);
-		ImageView stairBtn = (ImageView)findViewById(R.id.stir_button);
-		startBtn.setId(0);startBtn.setOnClickListener(this);
-		stopBtn.setId(1);stopBtn.setOnClickListener(this);
-		elevBtn.setId(2);elevBtn.setOnClickListener(this);
-		//walkBtn.setId(3);walkBtn.setOnClickListener(this);
-		stairBtn.setId(4);stairBtn.setOnClickListener(this);
+		View menuBtn = findViewById(R.id.AppBarMenuButton);
+		menuBtn.setId(3);menuBtn.setOnClickListener(this);
+		issetClickListenerMenubtn = false;
 
-		//SurfaceView
+		mServiceManager = new ServiceManagerForActivity(this);
+		appStateRunningText = (TextView)findViewById(R.id.AppStateText);
+		//Serviceをプロデュースするマネージャを雇います
+		if(mServiceManager.isServiceRunning()){
+			mServiceManager.doStartService();
+			setStopServiceButton((LinearLayout)findViewById(R.id.StartServiceButton));
+		}
+		else	setStartServiceButton((LinearLayout)findViewById(R.id.StartServiceButton));
+
+		//SurfaceViewデバッグ用だからあとで消そうねー
 		FrameLayout nakedLog = (FrameLayout)findViewById(R.id.LogSurface);
 		nakedView = new NakedView(this, new Thread(this));
 		nakedLog.addView(nakedView);
 
-		//LearningDBManager.getAllSensorData(getApplicationContext());
+		handler = new Handler();
+		appStateStep = (TextView)findViewById(R.id.AppStateStep);
+		appStateMile = (TextView)findViewById(R.id.AppStateMile);
+		appStateIcon = (ImageView)findViewById(R.id.AppStateIcon);
+
+		MyPagerAdapter mPagerAdapter;
+		ViewPager mViewPager;
+		mPagerAdapter = new MyPagerAdapter(this);
+		mViewPager = (ViewPager) findViewById(R.id.stateListPager);
+		mViewPager.setAdapter(mPagerAdapter);
 	}
 
 	@Override
@@ -67,8 +83,21 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 	@Override
 	public void run() {
 		while(nakedView.mThread!=null) {
-			nakedView.draw(
-					mServiceManager.getTest());
+			handler.post(new Runnable() {
+				@Override
+				public void run() {
+					String[] inferenceInfo = mServiceManager.getTest().split(":");
+					if(inferenceInfo.length == 3){
+						int parse = Integer.parseInt(inferenceInfo[0]);
+						int id = StateLog.getStateIcon(parse);
+						appStateIcon.setImageResource(id);
+						appStateStep.setText("歩数：" + inferenceInfo[1]);
+						appStateMile.setText("マイル：" + inferenceInfo[2]);
+					}
+				}
+			});
+
+			//nakedView.draw();
 			//Log.e("serviceTest", mServiceManager.getTest());
 			try {
 				Thread.sleep(250);
@@ -82,39 +111,40 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		return true;
 	}
 
+	private void setStartServiceButton(LinearLayout startBtn){
+		startBtn.setId(0);
+		if(!issetClickListenerMenubtn){startBtn.setOnClickListener(this);issetClickListenerMenubtn = true;}
+		((ImageView)startBtn.getChildAt(0)).setImageResource(R.drawable.ic_start);
+		((TextView)startBtn.getChildAt(1)).setText(R.string.start_service);
+		appStateRunningText.setText("動作停止中");
+	}
+
+	private void setStopServiceButton(LinearLayout startBtn){
+		startBtn.setId(1);
+		if(!issetClickListenerMenubtn){startBtn.setOnClickListener(this);issetClickListenerMenubtn = true;}
+		((ImageView)startBtn.getChildAt(0)).setImageResource(R.drawable.ic_stop);
+		((TextView)startBtn.getChildAt(1)).setText(R.string.stop_service);
+		appStateRunningText.setText("動作中");
+	}
+
 	@Override
 	public void onClick(View view) {
 		switch(view.getId()){
 		case 0:
-			Log.e("fight", "1 kita!");
 			mServiceManager.doStartService();
-			Log.e("fight", "1 owata! dekita:"+mServiceManager.getTest());
-			view.setId(1);
+			setStopServiceButton((LinearLayout)view);
 			break;
 		case 1:
-			Log.e("fight", "2 kita!");
 			mServiceManager.doStopService();
-			Log.e("fight", "2 owata!");
-			LinearLayout a = (LinearLayout)view;
-			view.setId(0);
+			setStartServiceButton((LinearLayout)view);
 			break;
 		case 2:
-			//SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-			//new JoinServerTask(this).execute();
-			//Log.e("NAME",sp.getString("PREF_USER", "test"));
-			//LoginServerTask.checkSession(this);
-			//new LoginServerTask(this).execute();
-			//Log.e("SESSION",sp.getString("PREF_SESSION", "test"));
-			//new SendSensorServerTask(this).execute();
-			//LearningDBManager.getSensorData(getApplicationContext(),1);
 			LearningDBManager.countDats(this);
 			break;
 		case 3:
-			Log.e("File kakikomi","1");
 			new LogToData(this).execute();
 			break;
 		case 4:
-			Log.e("activity kidou","hummmmm");
 			Intent intent = new Intent(NNCloudActivity.this, StateLogListActivity.class);
 			startActivity(intent);
 			break;
@@ -123,6 +153,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 
 	@Override
 	protected void onDestroy(){
+		mServiceManager.doUnbindService();
 		super.onDestroy();
 	}
 }

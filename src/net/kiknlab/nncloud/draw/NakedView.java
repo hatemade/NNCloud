@@ -17,7 +17,7 @@ public class NakedView extends SurfaceView implements SurfaceHolder.Callback{
 	public NakedView(Context context){
 		super(context);//カスタムビューに入れろと警告されてとりあえず作ったが…使う予定がない…
 	}
-	
+
 	public NakedView(Context context, Thread thread) {
 		super(context);
 
@@ -29,19 +29,21 @@ public class NakedView extends SurfaceView implements SurfaceHolder.Callback{
 	}
 
 	public void draw(String text){
-		canvas = holder.lockCanvas();
-		canvas.save();
-		canvas.drawColor(Color.WHITE);
-		Paint paint = new Paint();
-		paint.setColor(Color.RED);
-		paint.setTextSize(32);
-		paint.setAntiAlias(true);
-		lineText(paint, text);
-		//canvas.drawText(text, 0, 32, paint);
-		canvas.restore();
-		holder.unlockCanvasAndPost(canvas);
+		try{
+			canvas = holder.lockCanvas();
+			canvas.save();
+			canvas.drawColor(Color.WHITE);
+			Paint paint = new Paint();
+			paint.setColor(Color.RED);
+			paint.setTextSize(32);
+			paint.setAntiAlias(true);
+			lineText(paint, text);
+			//canvas.drawText(text, 0, 32, paint);
+			canvas.restore();
+			holder.unlockCanvasAndPost(canvas);
+		} catch(Exception e){}
 	}
-	
+
 	public void lineText(Paint paint, String text){
 		String[] line = text.split(":");
 		for(int i = 1;i <= line.length;i++){

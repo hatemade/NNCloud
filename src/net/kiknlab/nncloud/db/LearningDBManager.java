@@ -10,7 +10,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
-import android.util.Log;
 
 public class LearningDBManager {
 	static final String TABLE_NAME = "sensor_datas";
@@ -95,7 +94,6 @@ public class LearningDBManager {
 				}
 				str.append("\n");
 			}
-			Log.e("database",str.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -145,7 +143,6 @@ public class LearningDBManager {
 				}
 				str.append("\n");
 			}
-			Log.e("database",str.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -222,21 +219,17 @@ public class LearningDBManager {
 	 */
 
 	public static void writeSensorData2File(Context context){
-		Log.e("File kakikomi","7");
 		DBHelper helper = DBHelper.getInstance(context);
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = db.query(TABLE_NAME, null,null,null,null,null,null);
 		StringBuilder str = new StringBuilder();
 		FileOutputStream fos;
 
-		Log.e("File kakikomi","8");
 		try {
-			Log.e("File kakikomi","9");
 			fos = new FileOutputStream(Environment.getExternalStorageDirectory() +
 					LogToData.FILE_DIRECTORY +
 					LogToData.FILE_NAME,true);
 			try {
-				Log.e("File kakikomi","10");
 				while (cursor.moveToNext()) {
 					for(int i = 0;i < cursor.getColumnCount();i++){
 						str.append(cursor.getString(i));
@@ -248,7 +241,6 @@ public class LearningDBManager {
 					str.setLength(0);
 				}
 				//Log.e("database",str.toString());
-				Log.e("File kakikomi","11");
 			} catch (Exception e) {
 				try {
 					if (fos!=null){
@@ -259,12 +251,10 @@ public class LearningDBManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		Log.e("File kakikomi","12");
 	}
 
 	public static int sucoshiWriteSensorData2File(Context context, int id){
 		int lastId = id;
-		Log.e("File kakikomi","7");
 		DBHelper helper = DBHelper.getInstance(context);
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = db.query(TABLE_NAME,
@@ -277,14 +267,11 @@ public class LearningDBManager {
 		StringBuilder str = new StringBuilder();
 		FileOutputStream fos;
 
-		Log.e("File kakikomi","8");
 		try {
-			Log.e("File kakikomi","9");
 			fos = new FileOutputStream(Environment.getExternalStorageDirectory() +
 					LogToData.FILE_DIRECTORY +
 					LogToData.FILE_NAME,true);
 			try {
-				Log.e("File kakikomi","10");
 				while (cursor.moveToNext()) {
 					for(int i = 0;i < cursor.getColumnCount();i++){
 						str.append(cursor.getString(i));
@@ -297,7 +284,6 @@ public class LearningDBManager {
 					if(lastId < cursor.getInt(0))	lastId = cursor.getInt(0);
 				}
 				//Log.e("database",str.toString());
-				Log.e("File kakikomi","11");
 			} catch (Exception e) {
 				try {
 					if (fos!=null){
@@ -308,7 +294,6 @@ public class LearningDBManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		Log.e("File kakikomi","12");
 		return lastId;
 	}
 	public static int countDats(Context context){
@@ -326,10 +311,16 @@ public class LearningDBManager {
 				}
 				str.append("\n");
 			}
-			Log.e("database",str.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return 0;
+	}
+	
+
+	public static void cleanUpTable(Context context){
+		DBHelper helper = DBHelper.getInstance(context);
+		SQLiteDatabase db = helper.getReadableDatabase();
+		db.delete(TABLE_NAME, null, null);
 	}
 }

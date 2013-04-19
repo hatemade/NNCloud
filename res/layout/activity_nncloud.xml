@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nncloudActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -10,71 +11,28 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true" >
-
-        <Button
-            android:id="@+id/start"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="START" />
-
-        <Button
-            android:id="@+id/stop"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:text="STOP" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/StateButton2"
-        android:layout_width="fill_parent"
+    <ImageView
+        android:id="@+id/appState"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/ServiceButton"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:padding="10dip" >
-
-        <ImageView
-            android:id="@+id/stir_button"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_marginLeft="60dip"
-            android:layout_marginRight="10dip"
-            android:layout_weight="1"
-            android:src="@drawable/stair" />
-
-        <ImageView
-            android:id="@+id/elev_button"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_marginLeft="10dip"
-            android:layout_marginRight="60dip"
-            android:layout_weight="1"
-            android:src="@drawable/ele" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/StateButton1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/StateButton2"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:padding="10dip" >
-    </LinearLayout>
-
+        android:layout_below="@+id/AppBar"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/walking" />
+    
     <FrameLayout
         android:id="@+id/LogSurface"
         android:layout_width="fill_parent"
-        android:layout_height="120dip"
-        android:layout_above="@+id/StateButton1"
+        android:layout_height="60dp"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" >
-
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/appState" >
     </FrameLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/AppBar"
         android:layout_width="wrap_content"
         android:layout_height="60dp"
@@ -104,22 +62,81 @@
                 android:layout_margin="4dp"
                 android:gravity="left|center_vertical"
                 android:text="@string/start_service"
-                android:textColor="@android:color/primary_text_dark_nodisable"
+                android:textColor="@android:color/secondary_text_dark_nodisable"
                 android:textSize="35dp" />
-
         </LinearLayout>
 
-    </LinearLayout>
+        <ImageView
+            android:id="@+id/AppBarMenuButton"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/ic_app_bar_menu"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:src="@drawable/ic_menu_holo_dark" />
+
+        <View
+            android:id="@+id/dividerAppBar"
+            android:layout_width="1dp"
+            android:layout_height="fill_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="8dp"
+            android:background="#60666677" />
+    </RelativeLayout>
+    
+    <android.support.v4.view.ViewPager
+        android:id="@+id/stateListPager"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/LogSurface" />
 
     <ImageView
-        android:id="@+id/imageView1"
+        android:id="@+id/dividerImageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/AppBar"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp"
-        android:src="@drawable/walking" />
+        android:layout_alignTop="@+id/stateListPager"
+        android:layout_below="@id/LogSurface"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/divider_horizontal_textfield" />
+
+    <TextView
+        android:id="@+id/AppStateText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/appState"
+        android:layout_toRightOf="@+id/appState"
+        android:text="止まっています"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/AppStateStep"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/AppStateText"
+        android:layout_toRightOf="@+id/appState"
+        android:text="歩数：0" />
+
+    <TextView
+        android:id="@+id/AppStateMile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/AppStateStep"
+        android:layout_below="@+id/AppStateStep"
+        android:text="Mile:0" />
+
+    <ImageView
+        android:id="@+id/AppStateIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/appState"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/AppStateText"
+        android:src="@drawable/stop" />
 
 </RelativeLayout>

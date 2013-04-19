@@ -6,7 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 
 public class LogToData extends AsyncTask<Void, Void, Boolean>{
 	private Context mContext;
@@ -17,27 +16,19 @@ public class LogToData extends AsyncTask<Void, Void, Boolean>{
 	private int lastId;
 
 	public LogToData(Context context) {
-		Log.e("File kakikomi","2");
 		lastId = 0;
 		fileExist = true;
 		File file = new File(Environment.getExternalStorageDirectory() + FILE_DIRECTORY);
 		if(!file.exists()){
-			Log.e("File kakikomi","2.1");
 			if(!file.mkdir())	fileExist = false;
-			Log.e("File kakikomi","2.2");
 		}
-		Log.e("File kakikomi","3");
 		if(fileExist){
-			Log.e("File kakikomi","3.1");
 			file = new File(Environment.getExternalStorageDirectory() + FILE_DIRECTORY + FILE_NAME);
-			Log.e("File kakikomi","3.2");
 			if(!file.exists()){
-				Log.e("File kakikomi","3.3");
 				try{if(!file.createNewFile())	fileExist = false;}
 				catch(Exception e){}
 			}
 		}
-		Log.e("File kakikomi","4");
 		this.mContext = context;
 	}
 
@@ -52,16 +43,15 @@ public class LogToData extends AsyncTask<Void, Void, Boolean>{
 
 	@Override
 	protected Boolean doInBackground(Void... params) {
-		Log.e("File kakikomi","5");
 		int nextId = lastId + 1;
 		if(fileExist){
 			while(lastId != nextId){
 				nextId = lastId;
-				Log.e("File kakikomi","6");
 				lastId = LearningDBManager.sucoshiWriteSensorData2File(mContext, lastId);
 			}
+			LearningDBManager.cleanUpTable(mContext);
+			return true;
 		}
-		Log.e("File kakikomi","13");
 		return false;
 	}
 
