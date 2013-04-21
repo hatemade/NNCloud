@@ -46,7 +46,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		appStateRunningText = (TextView)findViewById(R.id.AppStateText);
 		//Serviceをプロデュースするマネージャを雇います
 		if(mServiceManager.isServiceRunning()){
-			mServiceManager.doStartService();
+			mServiceManager.doBindService();
 			setStopServiceButton((LinearLayout)findViewById(R.id.StartServiceButton));
 		}
 		else	setStartServiceButton((LinearLayout)findViewById(R.id.StartServiceButton));

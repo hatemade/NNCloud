@@ -40,7 +40,6 @@ public class MyPagerAdapter extends PagerAdapter{
 
 	@Override
 	public Object instantiateItem(View collection, int position) {
-
 		LayoutInflater inflater = (LayoutInflater)mContext.getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		RelativeLayout stateLogList = (RelativeLayout)inflater.inflate(R.layout.state_log_list_swipe_item, null);
 
@@ -84,6 +83,7 @@ public class MyPagerAdapter extends PagerAdapter{
 
 	public void setStateLogs(LinearLayout layout, long time){
 		ArrayList<StateLog> stateLogs = StateLogDBManager.getStateLogListOnDay(mContext.getApplicationContext(), time);
+		Log.e("ViewPager", "size:" + stateLogs.size());
 
 		LayoutInflater inflater = (LayoutInflater)mContext.getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		RelativeLayout stateItem;
@@ -96,7 +96,11 @@ public class MyPagerAdapter extends PagerAdapter{
 			layout.addView(text);
 		}
 		else{
+			long time1 = java.lang.System.currentTimeMillis();
+			Log.e("ViewPager", "size:" + stateLogs.size());
 			for(int i=0;i < stateLogs.size();i++){
+				Log.e("ViewPager", "size:" + stateLogs.get(1));
+				
 				stateItem = (RelativeLayout)inflater.inflate(R.layout.state_log_item, null);
 				ImageView stateImage = (ImageView)stateItem.getChildAt(0);
 				TextView stateText = (TextView)stateItem.getChildAt(1);

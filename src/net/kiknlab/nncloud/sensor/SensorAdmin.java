@@ -40,9 +40,9 @@ public class SensorAdmin implements SensorEventListener{
 	private int sensorSpeed;
 	//保存する？
 	private Context mContext;
-	private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！ 追記:いらなかった
-	public static final int TransactionPeriod = 800;
-	public int getTimes;
+	//private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！ 追記:いらなかった
+	//public static final int TransactionPeriod = 800;
+	//public int getTimes;
 
 	public SensorAdmin(Object sensorService, Context context) {
 		mContext = context;
@@ -76,9 +76,9 @@ public class SensorAdmin implements SensorEventListener{
 		orientationDatas = new ArrayList<SensorData>();
 
 		//DB
-		mDb = new LearningDBManager();
-		mDb.startTransaction(context); 
-		getTimes = 0;
+		//mDb = new LearningDBManager();
+		//mDb.startTransaction(context); 
+		//getTimes = 0;
 	}
 
 	public void resume() {
@@ -99,7 +99,7 @@ public class SensorAdmin implements SensorEventListener{
 
 	//センサーの処理の停止
 	public void stop() {
-		mDb.endTransaction();
+		//mDb.endTransaction();
 		sensorManager.unregisterListener(this);
 	}
 
@@ -108,7 +108,7 @@ public class SensorAdmin implements SensorEventListener{
 	public void onSensorChanged(SensorEvent event) {
 		switch(event.sensor.getType()){
 		case Sensor.TYPE_ACCELEROMETER:
-			mDb.insertTransaction(mContext, event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()); 
+			//mDb.insertTransaction(mContext, event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()); 
 			accelerometerDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
 			//Log.e("values2", "" + accelerometerDatas.get(0).values[1]);//accelerometerDatas.size() - 1).values[1]);
 			accelerometerValues = event.values;
@@ -117,7 +117,7 @@ public class SensorAdmin implements SensorEventListener{
 			IsMagnetic = false;//加速度を取得した直後に取得した磁気でOrientationを計算する
 			break;
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			mDb.insertTransaction(mContext, event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()); 
+			//mDb.insertTransaction(mContext, event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()); 
 			magneticDatas.add(new SensorData(event.values, event.sensor.getType(), event.accuracy, java.lang.System.currentTimeMillis()));
 			magneticValues = event.values;
 			orientationAccuracy += event.accuracy;
@@ -135,21 +135,23 @@ public class SensorAdmin implements SensorEventListener{
 			SensorManager.remapCoordinateSystem(inR, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR);//これでよかったのか？いいんだよな？…これでいい…
 			SensorManager.getOrientation(outR, orientationValues);//0がyawで、2がpitchで、1がrollなので注意、Orientationセンサー
 			orientationAccuracy = (int)(orientationAccuracy/2);
-			mDb.insertTransaction(mContext,
-					new float[]{orientationValues[0],orientationValues[2],orientationValues[1]},
-					TYPE_ORIENTATION_MAKE, orientationAccuracy,
-					java.lang.System.currentTimeMillis());
+			//mDb.insertTransaction(mContext,
+			//		new float[]{orientationValues[0],orientationValues[2],orientationValues[1]},
+			//		TYPE_ORIENTATION_MAKE, orientationAccuracy,
+			//		java.lang.System.currentTimeMillis());
 			orientationDatas.add(new SensorData(new float[]{orientationValues[0],orientationValues[2],orientationValues[1]}, TYPE_ORIENTATION_MAKE, orientationAccuracy, java.lang.System.currentTimeMillis()));
 			IsAccele = false;
 			IsMagnetic = false;
 		}
 
+		/*
 		getTimes++;
 		if(getTimes >= TransactionPeriod){
 			mDb.endTransaction();
 			getTimes = 0;
 			mDb.beginTransaction();
-		} 
+		}
+		*/
 	}
 
 	public boolean removeAllOldSensorDatas(long time){
