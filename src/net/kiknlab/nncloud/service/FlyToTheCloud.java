@@ -9,7 +9,9 @@ import java.util.TimerTask;
 import net.kiknlab.nncloud.R;
 import net.kiknlab.nncloud.activity.NNCloudActivity;
 import net.kiknlab.nncloud.cloud.CloudManager;
+import net.kiknlab.nncloud.cloud.SendInferenceLogServerTask;
 import net.kiknlab.nncloud.cloud.SendMileServerTask;
+import net.kiknlab.nncloud.db.DayLogDBManager;
 import net.kiknlab.nncloud.db.StateLogDBManager;
 import net.kiknlab.nncloud.sensor.GPSSensor;
 import net.kiknlab.nncloud.sensor.SensorAdmin;
@@ -51,18 +53,20 @@ public class FlyToTheCloud extends Service{
 	public static final float	POWER_SAVING_STAIR = 0.74f;//階段利用時の節電量。単位は…？なんだっけ?ワット?
 	public static final float	POWER_USING_ELEVATOR = -3.33f;//エレベータ利用時の消費電力
 	public static final String MILEAGE_POINT = "MILAGE_POINT";
-	public final int INFERENCE_THREAD_INTERVAL = 1000 * 5;// msecってmillisecondsとmicrosecondsのどっちだと思う？
+	public final int INFERENCE_THREAD_INTERVAL = 5 * 1000;// msecってmillisecondsとmicrosecondsのどっちだと思う？
 	private Timer mInferenceTimer = new Timer();
-	public final int NUMBER_OF_VOTE = (int)(5 * 1000)/INFERENCE_THREAD_INTERVAL;//ここで指定された時間の中で最も多い状態が採用される
+	public final int NUMBER_OF_VOTE = (int)((2 * 5 * 1000)/INFERENCE_THREAD_INTERVAL);//ここで指定された時間の中で最も多い状態が採用される
 	private ArrayList<Integer> voteState;//各投票数が状態(整数)ごとに入ってる
 	private ArrayList<Integer> stateList;//投票履歴
 	public int topState;
 	public long inferenceTime;
 	public final long ALLOW_DIFFERENT_INFERENCE_TIME = INFERENCE_THREAD_INTERVAL/2;//推定の間隔五秒からどこまでのずれを許容するか
+	private boolean isStop;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		isStop = false;
 		Log.e("Sevice Run", "onCreate");
 
 		mSensor = new SensorAdmin(getSystemService(Context.SENSOR_SERVICE), getApplication());
@@ -77,11 +81,21 @@ public class FlyToTheCloud extends Service{
 		for(int i = 0;i < NUMBER_OF_VOTE;i++){stateList.add(StateLog.STATE_STOP);}
 		voteState.set(StateLog.STATE_STOP, NUMBER_OF_VOTE);
 		topState = StateLog.STATE_STOP;
-		StateLogDBManager.insertSensorData(getApplication(), new StateLog(StateLog.STATE_LOG_RUNNING, java.lang.System.currentTimeMillis()));
+		Log.e("FTTC","1");
+		if(!StateLogDBManager.lastStateIsStop(getApplication())){
+			Log.e("FTTC","2");
+			StateLogDBManager.insertSensorData(getApplication(),
+				new StateLog(StateLog.STATE_LOG_ABNORMAL_STOP,
+				java.lang.System.currentTimeMillis()));
+		}
+		Log.e("FTTC","3");
+		StateLogDBManager.insertSensorData(getApplication(),
+				new StateLog(StateLog.STATE_LOG_RUNNING,
+				java.lang.System.currentTimeMillis()));
 
 		//2013-04-14 by Pocket7878
-		gps = new GPSSensor(getApplication());
-		gps.start();
+		//gps = new GPSSensor(getApplication());
+		//gps.start();
 
 		mile = sp.getFloat(MILEAGE_POINT, 0);
 		inferenceTime = java.lang.System.currentTimeMillis();
@@ -92,10 +106,6 @@ public class FlyToTheCloud extends Service{
 						- sp.getLong(StateInference.TIME_LENGTH, StateInference.TIME_LENGTH_DEFAULT);
 				if(mSensor.removeAllOldSensorDatas(time)){
 					//可能性を推定します
-					try{
-						Log.e("","" + mSensor.accelerometerDatas.get(0).values[1]);
-						Log.e("","" + mSensor.accelerometerDatas.get(10).values[1]);
-					} catch ( Exception e){}
 					mState.inference(
 							(List<SensorData>)mSensor.accelerometerDatas.clone(),
 							(List<SensorData>)mSensor.orientationDatas.clone());
@@ -104,13 +114,7 @@ public class FlyToTheCloud extends Service{
 					voteState.set(stateList.get(0), voteState.get(stateList.get(0)) - 1);
 					stateList.add(mState.stateLog.state);
 					stateList.remove(0);
-					Log.e("votes", "stop:" + voteState.get(0));
-					Log.e("votes", "walk:" + voteState.get(1));
-					Log.e("votes", "stai:" + voteState.get(2));
-					Log.e("votes", "elev:" + voteState.get(3));
-					Log.e("votes", "top :" + topState);
 					if(voteState.get(topState) < voteState.get(mState.stateLog.state)){
-						Log.e("change", "state:" + mState.stateLog.state);
 						topState = mState.stateLog.state;
 						StateLogDBManager.insertSensorData(getApplication(), mState.stateLog);
 					}
@@ -127,18 +131,24 @@ public class FlyToTheCloud extends Service{
 					} else if(mState.stateLog.state == StateLog.STATE_ELEVATOR){
 						mile += POWER_USING_ELEVATOR * ((java.lang.System.currentTimeMillis() - inferenceTime) / 1000);
 					}
+					sp.edit().putFloat(MILEAGE_POINT, mile).commit();
 				}
 				inferenceTime = java.lang.System.currentTimeMillis();
 			}
 		}, 0, INFERENCE_THREAD_INTERVAL);
+		
 		mSendServerTimer.schedule(new TimerTask() {
 			private Handler mHandler = new Handler(Looper.getMainLooper());
 			@Override
 			public void run() {
 				mHandler.post(new Runnable() {
 					public void run(){
+						int insertStep = mState.stackStep;
+						mState.stackStep = 0;
+						DayLogDBManager.insertStepLog(getApplication(), insertStep, java.lang.System.currentTimeMillis());
 						if(CloudManager.connectServer(getApplication())){
 							new SendMileServerTask(getApplication()).execute(new Float[]{mile, sendMile});
+							new SendInferenceLogServerTask(getApplication()).execute();
 						}
 					}
 				});
@@ -177,18 +187,28 @@ public class FlyToTheCloud extends Service{
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		// 解放せよ！われわれに働く気はない！負けだと思う！
-		sp.edit().putFloat(MILEAGE_POINT, mile).commit();
-		mState.stop();
-		mSensor.stop();
-		gps.stop();
-		mInferenceTimer.cancel();
-		mInferenceTimer = null;
-		mSendServerTimer.cancel();
-		mSendServerTimer = null;
-		StateLogDBManager.insertSensorData(getApplication(), new StateLog(StateLog.STATE_LOG_STOPPED, java.lang.System.currentTimeMillis()));
-		cancelNotifycation();
-		// 解放されました、今日から無職です、メモリはフリーターみたいな、フリーな領域みたいな
+		stopService();
+	}
+	
+	public void stopService(){
+		if(!isStop){
+			// 解放せよ！われわれに働く気はない！負けだと思う！
+			int insertStep = mState.stackStep;
+			mState.stackStep = 0;
+			DayLogDBManager.insertStepLog(getApplication(), insertStep, java.lang.System.currentTimeMillis());
+			sp.edit().putFloat(MILEAGE_POINT, mile).commit();
+			mState.stop();
+			mSensor.stop();
+			//gps.stop();
+			mInferenceTimer.cancel();
+			mInferenceTimer = null;
+			mSendServerTimer.cancel();
+			mSendServerTimer = null;
+			StateLogDBManager.insertSensorData(getApplication(), new StateLog(StateLog.STATE_LOG_STOPPED, java.lang.System.currentTimeMillis()));
+			cancelNotifycation();
+			isStop = true;
+			// 解放されました、今日から無職です、メモリはフリーターみたいな、フリーな領域みたいな
+		}
 	}
 
 	private void setNotifycation(){
@@ -196,8 +216,8 @@ public class FlyToTheCloud extends Service{
 		PendingIntent pend = PendingIntent.getActivity(this, 0, i, 0);
 
 		Notification notify = new NotificationCompat.Builder(this)
-		.setContentTitle("Title")
-		.setContentText("subject")
+		.setContentTitle("NNCloud")
+		.setContentText("running")
 		.setSmallIcon(R.drawable.walk)
 		.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.walking))
 		.setContentIntent(pend)

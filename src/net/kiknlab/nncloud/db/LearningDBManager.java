@@ -296,7 +296,7 @@ public class LearningDBManager {
 		}
 		return lastId;
 	}
-	public static int countDats(Context context){
+	public static int countDatas(Context context){
 		DBHelper helper = DBHelper.getInstance(context);
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = db.query(TABLE_NAME, new String[]{"count(*)"},null, null, null, null, null);

@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import net.kiknlab.nncloud.R;
+import net.kiknlab.nncloud.db.DayLogDBManager;
 import net.kiknlab.nncloud.db.StateLogDBManager;
 import net.kiknlab.nncloud.util.StateLog;
 import android.content.Context;
@@ -27,9 +28,11 @@ public class MyPagerAdapter extends PagerAdapter{
 	public final static String DATE_PATTERN		= "yyyy/MM/dd";
 	public final static String DATETIME_PATTERN	= "yyyy/MM/dd HH:mm:ss";
 	public final static String TIME_PATTERN		= "HH:mm:ss";
+	public int step;
 	
 	public MyPagerAdapter(Context context){
 		mContext = context;
+		step = 0;
 	}
 	
 	@Override
@@ -44,12 +47,13 @@ public class MyPagerAdapter extends PagerAdapter{
 		RelativeLayout stateLogList = (RelativeLayout)inflater.inflate(R.layout.state_log_list_swipe_item, null);
 
 		//DAY TextView
+		long day = getDayUnixtime(position);
 		TextView dayText = (TextView)stateLogList.getChildAt(0);
 		SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN, Locale.JAPAN);
-		dayText.setText(sdf.format(new Date(getDayUnixtime(position))));
+		dayText.setText(sdf.format(new Date(day)) + "\t歩数：" + ((position==0)?step:DayLogDBManager.getStepLogListOnDay(mContext, day)));
 		//StateLis ScrollView
 		LinearLayout linearList = (LinearLayout)((ScrollView)stateLogList.getChildAt(1)).getChildAt(0);
-		setStateLogs(linearList, getDayUnixtime(position));
+		setStateLogs(linearList, day);
 		//Swipe icon View
 		if(position == 0){
 			(stateLogList.getChildAt(2)).setBackgroundResource(R.drawable.swipe_icon);
@@ -75,7 +79,7 @@ public class MyPagerAdapter extends PagerAdapter{
 	public long getDayUnixtime(int backToDays){
 		//今日の時間以下を削ったunixtimeがほしかっただけなんだ…手間が多い気がする…
 		Calendar calendar = Calendar.getInstance();
-		Log.e("cindex","" + backToDays);
+		//Log.e("cindex","" + backToDays);
 		calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE) - backToDays, 0, 0, 0);
 		calendar.add(Calendar.MILLISECOND, -calendar.get(Calendar.MILLISECOND));
 		return calendar.getTimeInMillis();
@@ -83,7 +87,6 @@ public class MyPagerAdapter extends PagerAdapter{
 
 	public void setStateLogs(LinearLayout layout, long time){
 		ArrayList<StateLog> stateLogs = StateLogDBManager.getStateLogListOnDay(mContext.getApplicationContext(), time);
-		Log.e("ViewPager", "size:" + stateLogs.size());
 
 		LayoutInflater inflater = (LayoutInflater)mContext.getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		RelativeLayout stateItem;
@@ -96,19 +99,17 @@ public class MyPagerAdapter extends PagerAdapter{
 			layout.addView(text);
 		}
 		else{
-			long time1 = java.lang.System.currentTimeMillis();
-			Log.e("ViewPager", "size:" + stateLogs.size());
 			for(int i=0;i < stateLogs.size();i++){
-				Log.e("ViewPager", "size:" + stateLogs.get(1));
-				
 				stateItem = (RelativeLayout)inflater.inflate(R.layout.state_log_item, null);
 				ImageView stateImage = (ImageView)stateItem.getChildAt(0);
 				TextView stateText = (TextView)stateItem.getChildAt(1);
-				TextView stateTime = (TextView)stateItem.getChildAt(2);
+				//TextView stateTime = (TextView)stateItem.getChildAt(2);
 
 				stateImage.setImageResource(StateLog.getStateIcon(stateLogs.get(i).state));
 				stateText.setText(StateLog.getStateString(stateLogs.get(i).state));
-				stateTime.setText(sdf.format(new Date(stateLogs.get(i).timestamp)));
+				//stateTime.setText(sdf.format(new Date(stateLogs.get(i).timestamp)));
+				stateText = (TextView)stateItem.getChildAt(2);
+				stateText.setText(sdf.format(new Date(stateLogs.get(i).timestamp)));
 
 				layout.addView(stateItem);
 			}

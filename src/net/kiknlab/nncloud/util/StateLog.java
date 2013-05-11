@@ -3,20 +3,22 @@ package net.kiknlab.nncloud.util;
 import net.kiknlab.nncloud.R;
 
 public class StateLog {
-	public static final int		STATE_STOP				= 0;
-	public static final int		STATE_WALK				= 1;
-	public static final int		STATE_STAIR				= 2;
-	public static final int		STATE_ELEVATOR			= 3;
-	public static final int		STATE_LOG_RUNNING		= 100;
-	public static final int		STATE_LOG_STOPPED		= 101;
-	public static final int		NUMBER_OF_STATE			= 4;
-	public static final String	STATE_NAME_STOP			= "stop";
-	public static final String	STATE_NAME_WALK			= "walk";
-	public static final String	STATE_NAME_STAIR		= "stair";
-	public static final String	STATE_NAME_ELEVATOR		= "elevator";
-	public static final String	STATE_NAME_LOG_RUNNING	= "App start";
-	public static final String	STATE_NAME_LOG_STOPPED	= "App stop";
-	public static final String	STATE_NAME_UNKNOWN		= "unknown";
+	public static final int		STATE_STOP						= 0;
+	public static final int		STATE_WALK						= 1;
+	public static final int		STATE_STAIR						= 2;
+	public static final int		STATE_ELEVATOR					= 3;
+	public static final int		STATE_LOG_RUNNING				= 100;
+	public static final int		STATE_LOG_STOPPED				= 101;
+	public static final int		STATE_LOG_ABNORMAL_STOP			= 102;
+	public static final int		NUMBER_OF_STATE					= 4;
+	public static final String	STATE_NAME_STOP					= "stop";
+	public static final String	STATE_NAME_WALK					= "walk";
+	public static final String	STATE_NAME_STAIR				= "stair";
+	public static final String	STATE_NAME_ELEVATOR				= "elevator";
+	public static final String	STATE_NAME_LOG_RUNNING			= "App start";
+	public static final String	STATE_NAME_LOG_STOPPED			= "App stop";
+	public static final String	STATE_NAME_LOG_ABNORMAL_STOP	= "App abnormal stop";
+	public static final String	STATE_NAME_UNKNOWN				= "unknown";
 	public int state;
 	public long timestamp;
 
@@ -54,6 +56,8 @@ public class StateLog {
 			return STATE_NAME_LOG_RUNNING;
 		case STATE_LOG_STOPPED:
 			return STATE_NAME_LOG_STOPPED;
+		case STATE_LOG_ABNORMAL_STOP:
+			return STATE_NAME_LOG_ABNORMAL_STOP;
 		default:
 			return STATE_NAME_UNKNOWN;
 		}
@@ -89,6 +93,8 @@ public class StateLog {
 		case STATE_LOG_RUNNING:
 			return R.drawable.walking;
 		case STATE_LOG_STOPPED:
+			return R.drawable.walking;
+		case STATE_LOG_ABNORMAL_STOP:
 			return R.drawable.walking;
 		default:
 			return R.drawable.stop;

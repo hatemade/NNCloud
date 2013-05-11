@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 public class CloudManager {
 	//ServerÇ∆ÇÃê⁄ë±ÇÃç€Ç…ã§í Ç»íËêîÅAâ¥Ç™ÅAâ¥ÇΩÇøÇ™íËêîÇæ
@@ -26,6 +27,7 @@ public class CloudManager {
 	public final static String URL_LOGINSERVER 		= "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/LoginMe.php";
 	public final static String URL_SENDSENSORSERVER = "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/SendMe.php";
 	public final static String URL_SENDMILESERVER = "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/MileUp.php";
+	public final static String URL_SENDINFERENCELOGSERVER = "http://shaky.cs.dm.u-tokai.ac.jp/~sleepdisorder/nnc/LogMe.php";
 	public final static String JSON_CODE			= "CODE";
 	public final static int JSON_CODE_SUCCESS		= 200;
 	public final static String DATE_PATTERN			= "yyyy-MM-dd HH:mm:ss";
@@ -125,6 +127,7 @@ public class CloudManager {
 					resultString = EntityUtils.toString(response.getEntity());
 					try {
 						resultJObj = new JSONObject(resultString);
+						Log.e("BNBB", resultJObj.getInt(JSON_CODE) + "");
 						switch(resultJObj.getInt(JSON_CODE)) {
 						case JSON_CODE_SUCCESS:
 							return resultJObj;

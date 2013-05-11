@@ -4,15 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <LinearLayout
-        android:id="@+id/ServiceButton"
-        android:layout_width="wrap_content"
-        android:layout_height="70dip"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" >
-    </LinearLayout>
-
     <ImageView
         android:id="@+id/appState"
         android:layout_width="wrap_content"
@@ -22,15 +13,6 @@
         android:paddingBottom="10dp"
         android:paddingTop="10dp"
         android:src="@drawable/walking" />
-    
-    <FrameLayout
-        android:id="@+id/LogSurface"
-        android:layout_width="fill_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/appState" >
-    </FrameLayout>
 
     <RelativeLayout
         android:id="@+id/AppBar"
@@ -86,12 +68,12 @@
             android:layout_margin="8dp"
             android:background="#60666677" />
     </RelativeLayout>
-    
+
     <android.support.v4.view.ViewPager
         android:id="@+id/stateListPager"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/LogSurface" />
+        android:layout_below="@id/appState" />
 
     <ImageView
         android:id="@+id/dividerImageView"
@@ -100,7 +82,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/stateListPager"
-        android:layout_below="@id/LogSurface"
+        android:layout_below="@id/appState"
         android:scaleType="centerCrop"
         android:src="@android:drawable/divider_horizontal_textfield" />
 
@@ -138,5 +120,12 @@
         android:layout_alignParentRight="true"
         android:layout_below="@+id/AppStateText"
         android:src="@drawable/stop" />
+
+    <TextView
+        android:id="@+id/appStateDebugText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/AppStateMile"
+        android:layout_toRightOf="@+id/appState" />
 
 </RelativeLayout>
