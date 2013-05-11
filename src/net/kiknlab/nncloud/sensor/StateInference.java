@@ -138,6 +138,7 @@ public class StateInference {//èÛë‘êÑíË
 				stateLog.setWalk(acceles.get(acceles.size() - 1).timestamp);
 				debugLog += ",,,," + StateLog.STATE_WALK;
 			}
+			//(ÅL•É÷•`)
 		}
 		else{
 			/*
