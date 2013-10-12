@@ -43,7 +43,7 @@ public class SensorAdmin implements SensorEventListener{
 	private LearningDBManager mDb;//いらねぇ　追記：ひつようじゃん！ 追記:いらなかった
 	public static final int TransactionPeriod = 800;
 	public int getTimes;
-	public static final boolean INSERT_DB = false;
+	public static final boolean INSERT_DB = true;
 
 	public SensorAdmin(Object sensorService, Context context) {
 		mContext = context;

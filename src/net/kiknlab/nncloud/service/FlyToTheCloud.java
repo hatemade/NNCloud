@@ -120,9 +120,9 @@ public class FlyToTheCloud extends Service{
 					}
 					
 					calcMile();
-				}				
+				}
 			}
-			public void calcMile(){
+			public void calcMile(){//absしなくていいんじゃね？いや、必要だ
 				if(Math.abs(java.lang.System.currentTimeMillis()
 						- inferenceTime - INFERENCE_THREAD_INTERVAL)
 						< ALLOW_DIFFERENT_INFERENCE_TIME){

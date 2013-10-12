@@ -1,6 +1,7 @@
 package net.kiknlab.nncloud.activity;
 
 import net.kiknlab.nncloud.R;
+import net.kiknlab.nncloud.cloud.CloudManager;
 import net.kiknlab.nncloud.db.LearningDBManager;
 import net.kiknlab.nncloud.db.LogToData;
 import net.kiknlab.nncloud.db.StateLogDBManager;
@@ -13,8 +14,10 @@ import net.kiknlab.nncloud.util.StateLog;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -37,6 +40,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 	private boolean issetClickListenerMenubtn;
 	private Thread mThread;
 	MyPagerAdapter mPagerAdapter;
+	public String name;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -64,6 +68,9 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		appStateMile = (TextView)findViewById(R.id.AppStateMile);
 		appStateDebug = (TextView)findViewById(R.id.appStateDebugText);
 		appStateIcon = (ImageView)findViewById(R.id.AppStateIcon);
+		
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+		name = sp.getString(CloudManager.PREF_NAME, null);
 	}
 
 	@Override
@@ -98,7 +105,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 						appStateStep.setText("歩数：" + inferenceInfo[1]);
 						try{mPagerAdapter.step = Integer.parseInt(inferenceInfo[1]);}catch(Exception e){}
 						appStateMile.setText("マイル：" + inferenceInfo[2]);
-						appStateDebug.setText("");
+						appStateDebug.setText(name);
 					}
 					else{
 						appStateDebug.setText("?");
@@ -150,6 +157,7 @@ public class NNCloudActivity extends Activity implements View.OnClickListener, R
 		case 3:
 			if(SensorAdmin.INSERT_DB){
 				new LogToData(this).execute();
+				LearningDBManager.cleanUpTable(this);
 			}
 			else{
 				LearningDBManager.cleanUpTable(this);

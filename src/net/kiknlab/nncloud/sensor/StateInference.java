@@ -138,7 +138,7 @@ public class StateInference {//ó‘Ô„’è
 				stateLog.setWalk(acceles.get(acceles.size() - 1).timestamp);
 				debugLog += ",,,," + StateLog.STATE_WALK;
 			}
-			//(L¥ƒÖ¥`)
+
 		}
 		else{
 			/*
@@ -220,7 +220,7 @@ public class StateInference {//ó‘Ô„’è
 					if(acceles.get(i + differentInterval).timestamp -
 							acceles.get(featureIndex + differentInterval).timestamp >=
 							indexDistinctThreshold)
-						judgeElevator++;
+						judgeElevator++;//‚±‚êƒoƒO‚©‚ÈA‚½‚Ô‚ñ
 					featureIndex = i;
 					upElevator = false;
 				}
